@@ -1,3 +1,9 @@
 .venv/
 .DS_Store
 data/
+**__pycache__/
+.pytest_cache/
+node_modules/
+frontend/dist/
+kaching/__pycache__/
+**.pyc

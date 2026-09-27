@@ -1,16 +1,9 @@
-"""Command line entry point: fetch / chart / list."""
+"""Command line entry point: fetch / list / serve."""
 import argparse
 import sys
-import webbrowser
-from pathlib import Path
 
 from kaching import db
-from kaching.chart import build_figure, save_chart
 from kaching.fetcher import fetch_ticker, parse_lookback
-
-
-def _in_docker() -> bool:
-    return Path("/.dockerenv").exists()
 
 
 def cmd_fetch(args) -> int:
@@ -31,18 +24,10 @@ def cmd_fetch(args) -> int:
     return 0
 
 
-def cmd_chart(args) -> int:
-    conn = db.connect()
-    ticker = args.ticker.upper()
-    daily = db.load_bars(conn, ticker)
-    if daily.empty:
-        print(f"{ticker}: no data in DB — run `fetch {ticker}` first", file=sys.stderr)
-        return 1
-    view_start = parse_lookback(args.period) if args.period else None
-    path = save_chart(build_figure(ticker, daily, view_start), ticker)
-    print(f"{ticker}: chart written to {path}")
-    if not args.no_open and not _in_docker():
-        webbrowser.open(path.resolve().as_uri())
+def cmd_serve(args) -> int:
+    import uvicorn  # imported lazily so fetch/list don't pay for it
+
+    uvicorn.run("kaching.api:app", host=args.host, port=args.port, reload=args.reload)
     return 0
 
 
@@ -66,14 +51,14 @@ def main(argv=None) -> int:
     when.add_argument("--start", help="start date YYYY-MM-DD")
     p_fetch.set_defaults(func=cmd_fetch)
 
-    p_chart = sub.add_parser("chart", help="render interactive HTML chart from the DB")
-    p_chart.add_argument("ticker")
-    p_chart.add_argument("--period", help="initial visible range, e.g. 1Y or YYYY-MM-DD (default: all)")
-    p_chart.add_argument("--no-open", action="store_true", help="don't open the chart in a browser")
-    p_chart.set_defaults(func=cmd_chart)
-
     p_list = sub.add_parser("list", help="list stored tickers and date ranges")
     p_list.set_defaults(func=cmd_list)
+
+    p_serve = sub.add_parser("serve", help="run the web app / API server")
+    p_serve.add_argument("--host", default="127.0.0.1")
+    p_serve.add_argument("--port", type=int, default=8000)
+    p_serve.add_argument("--reload", action="store_true", help="auto-reload on code changes (dev)")
+    p_serve.set_defaults(func=cmd_serve)
 
     args = parser.parse_args(argv)
     try:

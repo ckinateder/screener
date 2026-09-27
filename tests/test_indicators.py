@@ -41,10 +41,25 @@ def test_to_weekly_ends_friday_and_aggregates():
 def test_weekly_values_align_to_daily_index():
     df = bars(list(range(1, 30)))
     ind = build_indicators(df)
-    w = ind["W EMA 21"]
+    w = ind["w_ema_21"]
     assert w.index.equals(df.index)
     assert not w.isna().any()
     # constant within a week
     week = df.index.to_period("W-FRI")
     assert (w.groupby(week).nunique() == 1).all()
-    assert ind["W EMA 21"].iloc[-1] == pytest.approx(ema(to_weekly(df)["close"], 21).iloc[-1])
+    assert w.iloc[-1] == pytest.approx(ema(to_weekly(df)["close"], 21).iloc[-1])
+
+
+def test_weekly_timeframe_has_only_weekly_indicators_on_weekly_index():
+    df = bars(list(range(1, 60)))
+    ind = build_indicators(df, tf="W")
+    assert set(ind) == {"w_ema_21", "w_ema_50", "w_ema_100", "w_kc:upper", "w_kc:mid", "w_kc:lower"}
+    assert ind["w_ema_21"].index.equals(to_weekly(df).index)
+
+
+def test_config_params_are_applied():
+    df = bars(list(range(1, 60)))
+    cfg = [{"id": "k", "kind": "kc", "tf": "D", "ema_length": 5, "atr_length": 3, "multiplier": 1.0}]
+    ind = build_indicators(df, cfg)
+    expected = keltner(df, 5, 3, 1.0)["upper"]
+    assert ind["k:upper"].equals(expected)

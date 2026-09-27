@@ -1,4 +1,5 @@
-"""SQLite storage for daily bars. One DB for the whole app, keyed by (ticker, date)."""
+"""SQLite storage: daily bars keyed by (ticker, date), plus symbol metadata, watchlist and settings."""
+import json
 import os
 import sqlite3
 from pathlib import Path
@@ -17,7 +18,21 @@ CREATE TABLE IF NOT EXISTS bars (
     close  REAL,
     volume INTEGER,
     PRIMARY KEY (ticker, date)
-)
+);
+CREATE TABLE IF NOT EXISTS symbols (
+    ticker       TEXT PRIMARY KEY,
+    name         TEXT,
+    exchange     TEXT,
+    last_fetched TEXT
+);
+CREATE TABLE IF NOT EXISTS watchlist (
+    ticker   TEXT PRIMARY KEY,
+    position INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS settings (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
 """
 
 
@@ -28,8 +43,10 @@ def db_path() -> Path:
 def connect(path: Path | None = None) -> sqlite3.Connection:
     path = path or db_path()
     path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(path)
-    conn.execute(SCHEMA)
+    # FastAPI may open the connection (dependency) and use it (endpoint) on different threads.
+    # Each connection still serves one request at a time, so disabling the check is safe.
+    conn = sqlite3.connect(path, check_same_thread=False)
+    conn.executescript(SCHEMA)
     return conn
 
 
@@ -71,3 +88,53 @@ def list_tickers(conn: sqlite3.Connection) -> list[tuple[str, str, str, int]]:
     return conn.execute(
         "SELECT ticker, MIN(date), MAX(date), COUNT(*) FROM bars GROUP BY ticker ORDER BY ticker"
     ).fetchall()
+
+
+def last_two_closes(conn: sqlite3.Connection, ticker: str) -> list[float]:
+    """Most recent close first."""
+    rows = conn.execute(
+        "SELECT close FROM bars WHERE ticker = ? ORDER BY date DESC LIMIT 2", (ticker,)
+    ).fetchall()
+    return [r[0] for r in rows]
+
+
+def upsert_symbol(conn: sqlite3.Connection, ticker: str, name: str | None = None,
+                  exchange: str | None = None, last_fetched: str | None = None) -> None:
+    """Insert or update symbol metadata; None fields keep their existing value."""
+    with conn:
+        conn.execute(
+            """INSERT INTO symbols (ticker, name, exchange, last_fetched) VALUES (?, ?, ?, ?)
+               ON CONFLICT(ticker) DO UPDATE SET
+                 name = COALESCE(excluded.name, name),
+                 exchange = COALESCE(excluded.exchange, exchange),
+                 last_fetched = COALESCE(excluded.last_fetched, last_fetched)""",
+            (ticker, name, exchange, last_fetched),
+        )
+
+
+def get_symbol(conn: sqlite3.Connection, ticker: str) -> dict | None:
+    row = conn.execute(
+        "SELECT ticker, name, exchange, last_fetched FROM symbols WHERE ticker = ?", (ticker,)
+    ).fetchone()
+    return None if row is None else dict(zip(("ticker", "name", "exchange", "last_fetched"), row))
+
+
+def get_watchlist(conn: sqlite3.Connection) -> list[str]:
+    return [r[0] for r in conn.execute("SELECT ticker FROM watchlist ORDER BY position")]
+
+
+def set_watchlist(conn: sqlite3.Connection, tickers: list[str]) -> None:
+    """Replace the whole watchlist with `tickers`, in order."""
+    with conn:
+        conn.execute("DELETE FROM watchlist")
+        conn.executemany("INSERT INTO watchlist VALUES (?, ?)", [(t, i) for i, t in enumerate(tickers)])
+
+
+def get_setting(conn: sqlite3.Connection, key: str):
+    row = conn.execute("SELECT value FROM settings WHERE key = ?", (key,)).fetchone()
+    return None if row is None else json.loads(row[0])
+
+
+def put_setting(conn: sqlite3.Connection, key: str, value) -> None:
+    with conn:
+        conn.execute("INSERT OR REPLACE INTO settings VALUES (?, ?)", (key, json.dumps(value)))

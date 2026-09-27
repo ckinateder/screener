@@ -1,12 +1,20 @@
 """EMA / ATR / Keltner indicators, plus daily -> weekly resampling."""
 import pandas as pd
 
-KELTNER_EMA = 20
-KELTNER_ATR = 10
-KELTNER_MULT = 2.0
-
-DAILY_EMAS = (9, 21, 50, 100)
-WEEKLY_EMAS = (21, 50, 100)
+# The fixed kaching indicator set. Users can edit params/style/visibility, but not add or remove entries.
+DEFAULT_CONFIG: list[dict] = [
+    {"id": "d_ema_9", "kind": "ema", "tf": "D", "length": 9, "color": "#facc15", "width": 2, "visible": True},
+    {"id": "d_ema_21", "kind": "ema", "tf": "D", "length": 21, "color": "#22d3ee", "width": 2, "visible": True},
+    {"id": "d_ema_50", "kind": "ema", "tf": "D", "length": 50, "color": "#fb923c", "width": 2, "visible": True},
+    {"id": "d_ema_100", "kind": "ema", "tf": "D", "length": 100, "color": "#e879f9", "width": 2, "visible": True},
+    {"id": "w_ema_21", "kind": "ema", "tf": "W", "length": 21, "color": "#0891b2", "width": 2, "visible": False},
+    {"id": "w_ema_50", "kind": "ema", "tf": "W", "length": 50, "color": "#c2410c", "width": 2, "visible": False},
+    {"id": "w_ema_100", "kind": "ema", "tf": "W", "length": 100, "color": "#a21caf", "width": 2, "visible": False},
+    {"id": "d_kc", "kind": "kc", "tf": "D", "ema_length": 20, "atr_length": 10, "multiplier": 2.0,
+     "color": "#a3e635", "width": 1, "visible": True},
+    {"id": "w_kc", "kind": "kc", "tf": "W", "ema_length": 20, "atr_length": 10, "multiplier": 2.0,
+     "color": "#94a3b8", "width": 1, "visible": True},
+]
 
 
 def ema(series: pd.Series, n: int) -> pd.Series:
@@ -23,7 +31,7 @@ def atr(df: pd.DataFrame, n: int) -> pd.Series:
     return true_range.ewm(alpha=1 / n, adjust=False).mean()
 
 
-def keltner(df: pd.DataFrame, ema_n=KELTNER_EMA, atr_n=KELTNER_ATR, mult=KELTNER_MULT) -> dict[str, pd.Series]:
+def keltner(df: pd.DataFrame, ema_n: int = 20, atr_n: int = 10, mult: float = 2.0) -> dict[str, pd.Series]:
     mid = ema(df["close"], ema_n)
     band = mult * atr(df, atr_n)
     return {"mid": mid, "upper": mid + band, "lower": mid - band}
@@ -43,17 +51,25 @@ def _weekly_to_daily(weekly_series: pd.Series, daily_index: pd.DatetimeIndex) ->
     return pd.Series(weekly_series.reindex(week_label).to_numpy(), index=daily_index)
 
 
-def build_indicators(daily: pd.DataFrame) -> dict[str, pd.Series]:
-    """All chart indicators, aligned to the daily index. Keys are display names."""
-    out: dict[str, pd.Series] = {}
-    for n in DAILY_EMAS:
-        out[f"D EMA {n}"] = ema(daily["close"], n)
-    for part, s in keltner(daily).items():
-        out[f"D KC {part}"] = s
+def _compute(bars: pd.DataFrame, cfg: dict) -> dict[str, pd.Series]:
+    if cfg["kind"] == "ema":
+        return {cfg["id"]: ema(bars["close"], cfg["length"])}
+    kc = keltner(bars, cfg["ema_length"], cfg["atr_length"], cfg["multiplier"])
+    return {f"{cfg['id']}:{part}": s for part, s in kc.items()}
 
+
+def build_indicators(daily: pd.DataFrame, config: list[dict] = DEFAULT_CONFIG, tf: str = "D") -> dict[str, pd.Series]:
+    """Indicator series keyed by id (Keltner parts as '<id>:upper|mid|lower').
+
+    tf="D": aligned to the daily index; weekly indicators are mapped onto their days.
+    tf="W": weekly indicators only, on the weekly (W-FRI) index.
+    """
     weekly = to_weekly(daily)
-    for n in WEEKLY_EMAS:
-        out[f"W EMA {n}"] = _weekly_to_daily(ema(weekly["close"], n), daily.index)
-    for part, s in keltner(weekly).items():
-        out[f"W KC {part}"] = _weekly_to_daily(s, daily.index)
+    out: dict[str, pd.Series] = {}
+    for cfg in config:
+        if cfg["tf"] == "D" and tf == "D":
+            out.update(_compute(daily, cfg))
+        elif cfg["tf"] == "W":
+            for key, s in _compute(weekly, cfg).items():
+                out[key] = s if tf == "W" else _weekly_to_daily(s, daily.index)
     return out

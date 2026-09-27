@@ -1,85 +1,122 @@
 # Kaching v3
 
-A stock selection tool for the Kaching weekly options strategy. It fetches daily bars from Yahoo Finance into a local SQLite database, then renders an interactive chart with daily and weekly EMAs and Keltner Channels.
+A TradingView-style charting app for picking stocks for the Kaching weekly options strategy. You can search any Yahoo Finance symbol, chart it with daily and weekly EMAs and Keltner Channels, and keep a watchlist. Data is fetched incrementally into a local SQLite database.
+
+- **Backend:** Python, FastAPI, yfinance, SQLite (`kaching/`)
+- **Frontend:** React, TypeScript, Vite, Tailwind, [Lightweight Charts](https://github.com/tradingview/lightweight-charts) (`frontend/`)
+
+## Quick start (Docker)
+
+```bash
+docker build -t kaching .
+docker run --rm -p 8000:8000 -v "$PWD/data:/data" kaching
+open http://localhost:8000
+```
+
+The container binds `0.0.0.0` and has no auth, so don't expose the port beyond your machine.
+
+## Development
+
+Run the backend and frontend in two terminals:
+
+```bash
+# 1. API on :8000
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements-dev.txt
+python -m kaching serve --reload
+
+# 2. Vite dev server on :5173 (proxies /api to :8000)
+cd frontend && npm install && npm run dev
+```
+
+Tests:
+
+```bash
+pytest                      # backend (yfinance is mocked, no network)
+cd frontend && npm test     # frontend pure-logic tests (Vitest)
+cd frontend && npm run typecheck
+```
+
+`python -m kaching serve` also serves `frontend/dist` when it exists, so after `npm run build` the whole app runs on one port.
+
+## Using the app
+
+| Feature | How |
+|---|---|
+| Symbol search | Click the symbol in the top-left. Search Yahoo by ticker or company name, then use ↑/↓/Enter. An unstored symbol gets 5 years of history fetched automatically. If search can't find a symbol, pressing Enter tries the typed text as-is |
+| Timeframe | **D** / **W** in the top bar. On **D**, weekly indicators draw as step lines. On **W**, only weekly indicators are shown |
+| Indicators | **ƒx Indicators** to toggle each one and set its colour, width, length and Keltner params. Hover a legend row for quick hide (eye) or settings (gear). Settings are global and saved in the DB |
+| Watchlist | **+** adds via search. Drag rows to reorder. Hover a row and click **✕** to remove it. **⟳** force-fetches every symbol. Prices refresh when the app loads |
+| Refresh | Opening a symbol fetches new bars if its data is more than 5 minutes old. **Refresh** in the top bar forces a fetch |
+| Links | The URL tracks state (`/?symbol=AAPL&tf=W`), so bookmarks and reloads reopen the same view |
 
 ## Indicators
 
 | Indicator | Daily | Weekly |
 |---|---|---|
 | EMA 9 | ✓ | |
-| EMA 21 / 50 / 100 | ✓ | ✓ |
+| EMA 21 / 50 / 100 | ✓ | ✓ (hidden by default) |
 | Keltner Channel: EMA(20) mid, ±2.0 × ATR(10) | ✓ | ✓ |
 
 - ATR uses Wilder (RMA) smoothing, the same as TradingView's `ta.atr`.
-- Weekly bars are resampled from stored daily bars into weeks ending Friday. The current week uses its in-progress values.
-- Indicators are computed over the full stored history, so fetch more history than you want to view. EMA 100 on a weekly chart needs about 2 years to warm up.
+- Weekly bars are resampled from daily bars into weeks ending Friday, labelled by their Monday as TradingView does. The current week uses its in-progress values.
+- Indicators are computed in Python over the full stored history, so EMA warm-up is correct. EMA 100 on a weekly chart needs about 2 years of data.
 - Prices are **adjusted** for splits and dividends.
 
-## Quick start (local)
+## CLI
+
+The web app covers everything, but the CLI is handy for scripting or bulk loads:
 
 ```bash
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+python -m kaching fetch AAPL MSFT NVDA --period 5Y   # or --start 2020-01-01; 5Y, 6M, 2W, 30D
+python -m kaching list
+python -m kaching serve [--host 0.0.0.0] [--port 8000] [--reload]
 
-python -m kaching fetch AAPL --period 5Y       # or --start 2020-01-01
-python -m kaching fetch AAPL MSFT NVDA         # several at once (default lookback: 5Y)
-python -m kaching chart AAPL --period 1Y       # writes charts/AAPL.html and opens it
-python -m kaching list                         # stored tickers and date ranges
+# in Docker
+docker run --rm -v "$PWD/data:/data" kaching fetch AAPL
 ```
-
-Lookback formats are `5Y`, `6M`, `2W`, `30D` (counted back from today) or a `YYYY-MM-DD` start date.
-
-### Chart
-
-- Click a legend item to show or hide it. Each Keltner Channel (upper, mid and lower) toggles as one item.
-- Daily and weekly EMAs of the same length share a colour. Weekly lines are dashed step lines. Weekly EMAs are hidden until you click them.
-- Use the range buttons (3M / 6M / 1Y / 5Y / All) or drag to zoom. `chart --period` only sets the initial view.
-- The HTML loads plotly.js from a CDN, so viewing it needs internet access.
-
-## Docker
-
-```bash
-docker build -t kaching .
-docker run --rm -v "$PWD/data:/data" kaching fetch AAPL --period 5Y
-docker run --rm -v "$PWD/data:/data" kaching chart AAPL
-open data/charts/AAPL.html
-```
-
-The container can't open a browser, so the chart is written to `./data/charts/` on the host.
 
 ## Storage and incremental fetching
 
-All tickers share one SQLite DB in the table `bars(ticker, date, open, high, low, close, volume)`.
+There's one SQLite DB (`KACHING_DB`, default `data/kaching.db`; `/data/kaching.db` in Docker) with these tables:
+
+- `bars(ticker, date, open, high, low, close, volume)`: daily bars
+- `symbols(ticker, name, exchange, last_fetched)`: names for the UI and the fetch throttle
+- `watchlist(ticker, position)`
+- `settings(key, value)`: indicator config as JSON
 
 When you fetch a ticker that's already stored:
 
 1. **New dates.** Only bars after the latest stored date are downloaded. The latest bar is always rewritten, because a fetch during market hours stores a partial day.
 2. **Backfill.** If the requested start is earlier than the stored history, only the missing older range is downloaded.
-3. **Auto-heal.** Yahoo re-adjusts history after splits and dividends. Each fetch re-checks one stored bar, and if its close has changed, that ticker's history is deleted and refetched. The output says `re-adjusted` when this happens.
+3. **Auto-heal.** Yahoo re-adjusts history after splits and dividends. Each fetch re-checks one stored bar, and if its close has changed, that ticker's history is deleted and refetched.
 
-## Configuration
+If Yahoo is unreachable, a stored symbol still charts from the DB, and the legend shows "offline, showing stored data".
 
-| Env var | Default | Docker |
+## API
+
+| Method | Path | |
 |---|---|---|
-| `KACHING_DB` | `data/kaching.db` | `/data/kaching.db` |
-| `KACHING_CHARTS` | `charts` | `/data/charts` |
+| GET | `/api/search?q=` | Yahoo symbol search (equities, ETFs, indices) |
+| GET | `/api/chart/{ticker}?tf=D\|W&refresh=0\|1` | Bars + indicators. Fetches if the ticker is unstored or its data is stale |
+| GET / PUT / DELETE | `/api/settings/indicators` | Read, save or reset the indicator config |
+| GET / PUT | `/api/watchlist` | Read the watchlist, or replace it with `{symbols: [...]}` in order |
+| POST | `/api/watchlist/refresh?force=` | Fetch the latest bars for all watchlist symbols |
 
-## Development
-
-```bash
-pip install -r requirements-dev.txt
-pytest
-```
-
-Tests don't use the network: yfinance is replaced with a fake in `tests/test_fetcher.py`.
+Interactive docs are at `/docs` while the server is running.
 
 ## Layout
 
 ```
 kaching/
-  cli.py         argparse subcommands: fetch / chart / list
-  fetcher.py     yfinance download, lookback parsing, incremental + auto-heal logic
+  api.py         FastAPI routes; serves frontend/dist
+  cli.py         fetch / list / serve
+  fetcher.py     yfinance download, lookback parsing, incremental + auto-heal
   db.py          SQLite schema and queries
-  indicators.py  EMA, ATR, Keltner, weekly resampling
-  chart.py       Plotly figure
+  indicators.py  EMA, ATR, Keltner, weekly resampling, default indicator config
+frontend/src/
+  App.tsx, store.ts (Zustand UI state), theme.ts
+  api/           typed client + TanStack Query hooks
+  components/    Chart, Legend, TopBar, SymbolSearch, Watchlist, IndicatorSettings
+  lib/           formatting, series transforms, URL state (+ tests)
 ```

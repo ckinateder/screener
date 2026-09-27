@@ -1,7 +1,10 @@
 .venv/
+.git/
 data/
 charts/
 tests/
 **/__pycache__/
 .pytest_cache/
 *.db
+frontend/node_modules/
+frontend/dist/

@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+/* TradingView dark palette. Keep in sync with src/theme.ts (used for the canvas chart). */
+@theme {
+  --color-bg: #131722;
+  --color-pane: #1e222d;
+  --color-border: #2a2e39;
+  --color-hover: #2a2e39;
+  --color-text: #d1d4dc;
+  --color-muted: #787b86;
+  --color-up: #089981;
+  --color-down: #f23645;
+  --color-accent: #2962ff;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Trebuchet MS", Roboto, Ubuntu, sans-serif;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-bg text-text font-sans text-[13px] antialiased;
+}
+
+/* Hide number input spinners, as TradingView's dialogs do. */
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
