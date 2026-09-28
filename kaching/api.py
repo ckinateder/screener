@@ -1,14 +1,16 @@
 """FastAPI backend for the React app. Also serves the built frontend when present."""
+import json
 import logging
 import os
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Iterator, Literal
+from typing import Annotated, Iterator, Literal
 
 import pandas as pd
 import yfinance as yf
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query, Response
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, model_validator
 
@@ -18,12 +20,21 @@ from kaching.indicators import DEFAULT_CONFIG, build_indicators, to_weekly
 
 log = logging.getLogger(__name__)
 
-DEFAULT_LOOKBACK = "5Y"
+DEFAULT_LOOKBACK = "MAX"
 FETCH_THROTTLE = timedelta(minutes=5)
 SEARCH_TYPES = {"EQUITY", "ETF", "INDEX"}
-INDICATORS_KEY = "indicators"
+INDICATORS_KEY = "indicators"  # chart pane 1; pane N > 1 uses "indicators:N"
+
+Pane = Annotated[int, Query(ge=1, le=2)]  # Literal[1, 2] rejects query strings like "2"
+
+
+def _indicators_key(pane: int) -> str:
+    return INDICATORS_KEY if pane == 1 else f"{INDICATORS_KEY}:{pane}"
 
 app = FastAPI(title="Kaching")
+# Full-history charts are several MB of JSON (bars + ~13 indicator series); gzip shrinks them ~6x.
+# Level 5, not the default 9: ~7x faster on a 10MB chart for ~10% larger output.
+app.add_middleware(GZipMiddleware, minimum_size=1024, compresslevel=5)
 
 
 def get_conn() -> Iterator[sqlite3.Connection]:
@@ -79,10 +90,11 @@ def _validate_config(entries: list[IndicatorSetting]) -> list[dict]:
     return [by_id[id_].model_dump(exclude_none=True) for id_ in expected]
 
 
-def load_config(conn: sqlite3.Connection) -> list[dict]:
-    stored = db.get_setting(conn, INDICATORS_KEY)
+def load_config(conn: sqlite3.Connection, pane: int = 1) -> list[dict]:
+    """Indicator config for a chart pane. An unconfigured pane > 1 starts as a copy of pane 1."""
+    stored = db.get_setting(conn, _indicators_key(pane))
     if stored is None:
-        return DEFAULT_CONFIG
+        return DEFAULT_CONFIG if pane == 1 else load_config(conn, 1)
     try:
         return _validate_config([IndicatorSetting(**e) for e in stored])
     except (ValueError, TypeError):
@@ -114,10 +126,13 @@ def ensure_data(conn: sqlite3.Connection, ticker: str, force: bool = False) -> d
     stored = db.date_range(conn, ticker)
     sym = db.get_symbol(conn, ticker) or {}
     last = sym.get("last_fetched")
-    if stored and not force and last and _now() - datetime.fromisoformat(last) < FETCH_THROTTLE:
+    # Tickers stored before full-history fetching (or via a shorter CLI fetch) get one backfill.
+    backfill = stored is not None and not sym.get("full_history")
+    fresh = last and _now() - datetime.fromisoformat(last) < FETCH_THROTTLE
+    if stored and not force and not backfill and fresh:
         return {"healed": False, "stale": False}
 
-    start = parse_lookback(DEFAULT_LOOKBACK) if stored is None else stored[0].date()
+    start = parse_lookback(DEFAULT_LOOKBACK) if stored is None or backfill else stored[0].date()
     try:
         summary = fetch_ticker(conn, ticker, start)
     except Exception as exc:
@@ -132,6 +147,8 @@ def ensure_data(conn: sqlite3.Connection, ticker: str, force: bool = False) -> d
     if not name:
         name, exchange = _lookup_name(ticker)
     db.upsert_symbol(conn, ticker, name, exchange, _now().isoformat())
+    if start == parse_lookback(DEFAULT_LOOKBACK):
+        db.mark_full_history(conn, ticker)
     return {"healed": summary["healed"], "stale": False}
 
 
@@ -192,7 +209,7 @@ def search(q: str, conn: sqlite3.Connection = Depends(get_conn)):
 
 
 @app.get("/api/chart/{ticker}")
-def chart(ticker: str, tf: Literal["D", "W"] = "D", refresh: bool = False,
+def chart(ticker: str, tf: Literal["D", "W"] = "D", refresh: bool = False, pane: Pane = 1,
           conn: sqlite3.Connection = Depends(get_conn)):
     ticker = ticker.upper()
     status = ensure_data(conn, ticker, force=refresh)
@@ -201,10 +218,10 @@ def chart(ticker: str, tf: Literal["D", "W"] = "D", refresh: bool = False,
         raise HTTPException(404, f"No data found for {ticker}")
 
     bars = daily if tf == "D" else to_weekly(daily)
-    indicators = build_indicators(daily, load_config(conn), tf)
+    indicators = build_indicators(daily, load_config(conn, pane), tf)
     times = _times(bars.index, tf)
     sym = db.get_symbol(conn, ticker) or {}
-    return {
+    payload = {
         "symbol": ticker,
         "name": sym.get("name"),
         "exchange": sym.get("exchange"),
@@ -217,27 +234,31 @@ def chart(ticker: str, tf: Literal["D", "W"] = "D", refresh: bool = False,
         "indicators": {key: _series_points(s, tf) for key, s in indicators.items()},
         **status,
     }
+    # Already plain JSON types: skip FastAPI's per-object jsonable_encoder, which takes ~0.65s on a
+    # full-history chart (~225k points) vs ~0.1s for json.dumps. allow_nan=False matches FastAPI.
+    return Response(json.dumps(payload, allow_nan=False), media_type="application/json")
 
 
 @app.get("/api/settings/indicators")
-def get_indicator_settings(conn: sqlite3.Connection = Depends(get_conn)):
-    return load_config(conn)
+def get_indicator_settings(pane: Pane = 1, conn: sqlite3.Connection = Depends(get_conn)):
+    return load_config(conn, pane)
 
 
 @app.put("/api/settings/indicators")
-def put_indicator_settings(entries: list[IndicatorSetting], conn: sqlite3.Connection = Depends(get_conn)):
+def put_indicator_settings(entries: list[IndicatorSetting], pane: Pane = 1,
+                           conn: sqlite3.Connection = Depends(get_conn)):
     try:
         config = _validate_config(entries)
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
-    db.put_setting(conn, INDICATORS_KEY, config)
+    db.put_setting(conn, _indicators_key(pane), config)
     return config
 
 
 @app.delete("/api/settings/indicators")
-def reset_indicator_settings(conn: sqlite3.Connection = Depends(get_conn)):
-    with conn:
-        conn.execute("DELETE FROM settings WHERE key = ?", (INDICATORS_KEY,))
+def reset_indicator_settings(pane: Pane = 1, conn: sqlite3.Connection = Depends(get_conn)):
+    # Store defaults explicitly (not delete): a deleted pane-2 config would fall back to pane 1's.
+    db.put_setting(conn, _indicators_key(pane), DEFAULT_CONFIG)
     return DEFAULT_CONFIG
 
 

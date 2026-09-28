@@ -1,0 +1,3081 @@
+{
+  "metadata": {
+    "source": "CBOE Weekly Options List",
+    "converted_at": "2026-01-23T12:26:07.504969",
+    "total_count": 614,
+    "etf_count": 264,
+    "equity_count": 350
+  },
+  "tickers": [
+    {
+      "ticker": "VIX",
+      "name": "01/28/26",
+      "type": "ETF"
+    },
+    {
+      "ticker": "AGQ",
+      "name": "PROSHARES TR II ULTRA SILVER NEW",
+      "type": "ETF"
+    },
+    {
+      "ticker": "BOIL",
+      "name": "PROSHARES TR II ULTRA BLOOMBERG",
+      "type": "ETF"
+    },
+    {
+      "ticker": "DIA",
+      "name": "SPDR DOW JONES INDL AVERAGE UT SER 1",
+      "type": "ETF"
+    },
+    {
+      "ticker": "EMB",
+      "name": "ISHARES TR JPMORGAN USD EMG",
+      "type": "ETF"
+    },
+    {
+      "ticker": "ETH",
+      "name": "GRAYSCALE ETHEREUM STAKING SHS NEW",
+      "type": "ETF"
+    },
+    {
+      "ticker": "ETHA",
+      "name": "ISHARES ETHEREUM TR SHS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "FBTC",
+      "name": "Fidelity Wise Origin Bitcoin Fund",
+      "type": "ETF"
+    },
+    {
+      "ticker": "FEZ",
+      "name": "SPDR INDEX SHS FDS EURO STOXX 50",
+      "type": "ETF"
+    },
+    {
+      "ticker": "GLD",
+      "name": "SPDR GOLD TR GOLD SHS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "IAU",
+      "name": "ISHARES GOLD TR ISHARES NEW",
+      "type": "ETF"
+    },
+    {
+      "ticker": "IEF",
+      "name": "ISHARES TR 7-10 YR TRSY BD",
+      "type": "ETF"
+    },
+    {
+      "ticker": "KOLD",
+      "name": "PROSHARES TR II ULSHT BLOOMB GAS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "KRE",
+      "name": "SPDR SERIES TRUST STATE STREET SPD",
+      "type": "ETF"
+    },
+    {
+      "ticker": "KWEB",
+      "name": "KRANESHARES TRUST CSI CHI INTERNET",
+      "type": "ETF"
+    },
+    {
+      "ticker": "MSOS",
+      "name": "ADVISORSHARES TR PURE US CANNABIS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "MSTX",
+      "name": "TIDAL TRUST II DEF DLY TGT 2X L",
+      "type": "ETF"
+    },
+    {
+      "ticker": "MSTY",
+      "name": "TIDAL TRUST II YIELDMAX MSTR OP",
+      "type": "ETF"
+    },
+    {
+      "ticker": "QQQ",
+      "name": "INVESCO QQQ TR UNIT SER 1",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RSP",
+      "name": "INVESCO EXCHANGE TRADED FD TR S&P500 EQL WGT",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SCHD",
+      "name": "SCHWAB STRATEGIC TR US DIVIDEND EQ",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SLV",
+      "name": "ISHARES SILVER TR ISHARES",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SOXX",
+      "name": "ISHARES TR ISHARES SEMICDTR",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SPXU",
+      "name": "PROSHARES TR ULTRAPRO SHORT S",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SQQQ",
+      "name": "PROSHARES TR ULTRAPRO SHORT",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SSO",
+      "name": "PROSHARES TR PSHS ULT S&P 500",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TQQQ",
+      "name": "PROSHARES TR ULTRAPRO QQQ",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TSLQ",
+      "name": "INVESTMENT MANAGERS SER TR II TRADR 2X SHORT",
+      "type": "ETF"
+    },
+    {
+      "ticker": "ULTY",
+      "name": "TIDAL TRUST II YIELDMAX ULTRA O",
+      "type": "ETF"
+    },
+    {
+      "ticker": "UNG",
+      "name": "UNITED STS NAT GAS FD LP UNIT PAR",
+      "type": "ETF"
+    },
+    {
+      "ticker": "UPRO",
+      "name": "PROSHARES TR ULTRPRO S&P500",
+      "type": "ETF"
+    },
+    {
+      "ticker": "URA",
+      "name": "GLOBAL X FDS GLOBAL X URANIUM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "USO",
+      "name": "UNITED STS OIL FD LP UNITS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "VXX",
+      "name": "iPath Series B S&P 500 VIX Short-Term Futures ETN",
+      "type": "ETF"
+    },
+    {
+      "ticker": "XBI",
+      "name": "SPDR SERIES TRUST STATE STREET SPD",
+      "type": "ETF"
+    },
+    {
+      "ticker": "XHB",
+      "name": "SPDR SERIES TRUST STATE STREET SPD",
+      "type": "ETF"
+    },
+    {
+      "ticker": "XLB",
+      "name": "SELECT SECTOR SPDR TR STATE STREET MAT",
+      "type": "ETF"
+    },
+    {
+      "ticker": "XLC",
+      "name": "SELECT SECTOR SPDR TR STATE STREET COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "XLE",
+      "name": "SELECT SECTOR SPDR TR STATE STREET ENE",
+      "type": "ETF"
+    },
+    {
+      "ticker": "XLF",
+      "name": "SELECT SECTOR SPDR TR STATE STREET FIN",
+      "type": "ETF"
+    },
+    {
+      "ticker": "XLI",
+      "name": "SELECT SECTOR SPDR TR STATE STREET IND",
+      "type": "ETF"
+    },
+    {
+      "ticker": "XLK",
+      "name": "SELECT SECTOR SPDR TR STATE STREET TEC",
+      "type": "ETF"
+    },
+    {
+      "ticker": "XLP",
+      "name": "SELECT SECTOR SPDR TR STATE STREET CON",
+      "type": "ETF"
+    },
+    {
+      "ticker": "XLU",
+      "name": "SELECT SECTOR SPDR TR STATE STREET UTI",
+      "type": "ETF"
+    },
+    {
+      "ticker": "XLV",
+      "name": "SELECT SECTOR SPDR TR STATE STREET HEA",
+      "type": "ETF"
+    },
+    {
+      "ticker": "XLY",
+      "name": "SELECT SECTOR SPDR TR STATE STREET CON",
+      "type": "ETF"
+    },
+    {
+      "ticker": "XOP",
+      "name": "SPDR SERIES TRUST STATE STREET SPD",
+      "type": "ETF"
+    },
+    {
+      "ticker": "XRT",
+      "name": "SPDR SERIES TRUST STATE STREET SPD",
+      "type": "ETF"
+    },
+    {
+      "ticker": "AA",
+      "name": "ALCOA CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AAL",
+      "name": "AMERICAN AIRLS GROUP INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AAOI",
+      "name": "APPLIED OPTOELECTRONICS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AAP",
+      "name": "ADVANCE AUTO PARTS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AAPL",
+      "name": "APPLE INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ABAT",
+      "name": "AMERICAN BATTERY TECHNOLOGY COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ABBV",
+      "name": "ABBVIE INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ABNB",
+      "name": "AIRBNB INC COM CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ABR",
+      "name": "ARBOR REALTY TRUST INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ABT",
+      "name": "ABBOTT LABS COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ABTC",
+      "name": "AMERICAN BITCOIN CORP. COM CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ABVX",
+      "name": "ABIVAX SA SPONSORED ADS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ACHR",
+      "name": "ARCHER AVIATION INC COM CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ACI",
+      "name": "ALBERTSONS COS INC COMMON STOCK",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ACN",
+      "name": "ACCENTURE PLC IRELAND SHS CLASS A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ADBE",
+      "name": "ADOBE INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ADI",
+      "name": "ANALOG DEVICES INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ADP",
+      "name": "AUTOMATIC DATA PROCESSING INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ADSK",
+      "name": "AUTODESK INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AEM",
+      "name": "AGNICO EAGLE MINES LTD COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AEO",
+      "name": "AMERICAN EAGLE OUTFITTERS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AES",
+      "name": "AES CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AFL",
+      "name": "AFLAC INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AFRM",
+      "name": "AFFIRM HLDGS INC COM CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AG",
+      "name": "FIRST MAJESTIC SILVER CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AGNC",
+      "name": "AGNC INVT CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AI",
+      "name": "C3 AI INC CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AIG",
+      "name": "AMERICAN INTL GROUP INC COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ALAB",
+      "name": "ASTERA LABS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ALB",
+      "name": "ALBEMARLE CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ALGN",
+      "name": "ALIGN TECHNOLOGY INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ALT",
+      "name": "ALTIMMUNE INC COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AMAT",
+      "name": "APPLIED MATLS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AMBA",
+      "name": "AMBARELLA INC SHS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AMC",
+      "name": "AMC ENTMT HLDGS INC CL A NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AMD",
+      "name": "ADVANCED MICRO DEVICES INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AMGN",
+      "name": "AMGEN INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AMZN",
+      "name": "AMAZON COM INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ANET",
+      "name": "ARISTA NETWORKS INC COM SHS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ANF",
+      "name": "ABERCROMBIE & FITCH CO CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ANVS",
+      "name": "ANNOVIS BIO INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "APA",
+      "name": "APA CORPORATION COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "APLD",
+      "name": "APPLIED DIGITAL CORP COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "APO",
+      "name": "APOLLO GLOBAL MGMT INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "APP",
+      "name": "APPLOVIN CORP COM CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "APT",
+      "name": "ALPHA PRO TECH LTD COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AR",
+      "name": "ANTERO RESOURCES CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ARM",
+      "name": "ARM HOLDINGS PLC SPONSORED ADS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ASAN",
+      "name": "ASANA INC CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ASML",
+      "name": "ASML HOLDING N V N Y REGISTRY SHS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ASO",
+      "name": "ACADEMY SPORTS & OUTDOORS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ASPI",
+      "name": "ASP ISOTOPES INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ASST",
+      "name": "STRIVE INC CL A COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ASTS",
+      "name": "AST SPACEMOBILE INC COM CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ATYR",
+      "name": "ATYR PHARMA INC COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AUR",
+      "name": "AURORA INNOVATION INC CLASS A COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AVAV",
+      "name": "AEROVIRONMENT INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AVGO",
+      "name": "BROADCOM INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "AXP",
+      "name": "AMERICAN EXPRESS CO COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "B",
+      "name": "BARRICK MNG CORP COM SHS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BA",
+      "name": "BOEING CO COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BABA",
+      "name": "ALIBABA GROUP HLDG LTD SPONSORED ADS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BAC",
+      "name": "BANK AMERICA CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BAX",
+      "name": "BAXTER INTL INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BB",
+      "name": "BLACKBERRY LTD COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BBAI",
+      "name": "BIGBEAR AI HLDGS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BBWI",
+      "name": "BATH & BODY WORKS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BBY",
+      "name": "BEST BUY INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BE",
+      "name": "BLOOM ENERGY CORP COM CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BEKE",
+      "name": "KE HLDGS INC SPONSORED ADS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BHC",
+      "name": "BAUSCH HEALTH COS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BIDU",
+      "name": "BAIDU INC SPON ADR REP A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BIIB",
+      "name": "BIOGEN INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BILI",
+      "name": "BILIBILI INC SPONS ADS REP Z",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BILL",
+      "name": "BILL HOLDINGS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BITF",
+      "name": "BITFARMS LTD COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BKKT",
+      "name": "BAKKT HOLDINGS INC COM CL A NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BKNG",
+      "name": "BOOKING HOLDINGS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BKSY",
+      "name": "BLACKSKY TECHNOLOGY INC CL A NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BLK",
+      "name": "BLACKROCK INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BLSH",
+      "name": "BULLISH ORD SHS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BMNR",
+      "name": "BITMINE IMMERSION TECNOLOGIES COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BMY",
+      "name": "BRISTOL-MYERS SQUIBB CO COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BP",
+      "name": "BP PLC SPONSORED ADR",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BROS",
+      "name": "DUTCH BROS INC CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BRR",
+      "name": "PROCAP FINL INC COM SHS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BSX",
+      "name": "BOSTON SCIENTIFIC CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BTBT",
+      "name": "BIT DIGITAL INC SHS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BTDR",
+      "name": "BITDEER TECHNOLOGIES GROUP CL A ORD SHS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BTG",
+      "name": "B2GOLD CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BTU",
+      "name": "PEABODY ENERGY CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BUD",
+      "name": "ANHEUSER BUSCH INBEV SA/NV SPONSORED ADR",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BULL",
+      "name": "WEBULL CORP ORD SHS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BURL",
+      "name": "BURLINGTON STORES INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BX",
+      "name": "BLACKSTONE INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "BYND",
+      "name": "BEYOND MEAT INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "C",
+      "name": "CITIGROUP INC COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CAG",
+      "name": "CONAGRA BRANDS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CAH",
+      "name": "CARDINAL HEALTH INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CAR",
+      "name": "AVIS BUDGET GROUP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CART",
+      "name": "MAPLEBEAR INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CAT",
+      "name": "CATERPILLAR INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CAVA",
+      "name": "CAVA GROUP INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CBOE",
+      "name": "Cboe Global Markets, Inc.",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CC",
+      "name": "CHEMOURS CO COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CCCX",
+      "name": "CHURCHILL CAP CORP X SHS CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CCJ",
+      "name": "CAMECO CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CCL",
+      "name": "CARNIVAL CORP PAIRED CTF",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CDE",
+      "name": "COEUR MNG INC COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CDNS",
+      "name": "CADENCE DESIGN SYSTEM INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CEG",
+      "name": "CONSTELLATION ENERGY CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CELH",
+      "name": "CELSIUS HLDGS INC COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CF",
+      "name": "CF INDS HLDGS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CGC",
+      "name": "CANOPY GROWTH CORPORATION COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CHPT",
+      "name": "CHARGEPOINT HOLDINGS INC COM SHS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CHTR",
+      "name": "CHARTER COMMUNICATIONS INC NEW CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CHWY",
+      "name": "CHEWY INC CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CI",
+      "name": "THE CIGNA GROUP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CIEN",
+      "name": "CIENA CORP COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CIFR",
+      "name": "CIPHER MINING INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CL",
+      "name": "COLGATE PALMOLIVE CO COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CLF",
+      "name": "CLEVELAND-CLIFFS INC NEW COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CLOV",
+      "name": "CLOVER HEALTH INVESTMENTS CORP COM CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CLS",
+      "name": "CELESTICA INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CLSK",
+      "name": "CLEANSPARK INC COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CMCSA",
+      "name": "COMCAST CORP NEW CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CME",
+      "name": "CME GROUP INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CMG",
+      "name": "CHIPOTLE MEXICAN GRILL INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CNC",
+      "name": "CENTENE CORP DEL COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CNQ",
+      "name": "CANADIAN NAT RES LTD COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "COF",
+      "name": "CAPITAL ONE FINL CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "COHR",
+      "name": "COHERENT CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "COIN",
+      "name": "COINBASE GLOBAL INC COM CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "COP",
+      "name": "CONOCOPHILLIPS COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CORZ",
+      "name": "CORE SCIENTIFIC INC NEW COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "COST",
+      "name": "COSTCO WHOLESALE CORPORATION COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CPB",
+      "name": "THE CAMPBELLS COMPANY COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CPNG",
+      "name": "COUPANG INC CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CRCL",
+      "name": "CIRCLE INTERNET GROUP INC COM CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CRDO",
+      "name": "CREDO TECHNOLOGY GROUP HOLDING ORDINARY SHARES",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CRH",
+      "name": "CRH PLC ORD",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CRM",
+      "name": "SALESFORCE INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CRML",
+      "name": "CRITICAL METALS CORP PUBCO ORD SHS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CROX",
+      "name": "CROCS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CRSP",
+      "name": "CRISPR THERAPEUTICS AG NAMEN AKT",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CRWD",
+      "name": "CROWDSTRIKE HLDGS INC CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CRWV",
+      "name": "COREWEAVE INC COM CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CSCO",
+      "name": "CISCO SYS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CSIQ",
+      "name": "CANADIAN SOLAR INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CSX",
+      "name": "CSX CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CTAS",
+      "name": "CINTAS CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CTRA",
+      "name": "COTERRA ENERGY INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CVNA",
+      "name": "CARVANA CO CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CVS",
+      "name": "CVS HEALTH CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CVX",
+      "name": "CHEVRON CORP NEW COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CWAN",
+      "name": "CLEARWATER ANALYTICS HLDGS INC CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "CZR",
+      "name": "CAESARS ENTERTAINMENT INC NEW COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DAL",
+      "name": "DELTA AIR LINES INC DEL COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DASH",
+      "name": "DOORDASH INC CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DBRG",
+      "name": "DIGITALBRIDGE GROUP INC CL A NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DBX",
+      "name": "DROPBOX INC CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DDD",
+      "name": "3-D SYS CORP DEL COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DDOG",
+      "name": "DATADOG INC CL A COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DE",
+      "name": "DEERE & CO COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DECK",
+      "name": "DECKERS OUTDOOR CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DELL",
+      "name": "DELL TECHNOLOGIES INC CL C",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DFDV",
+      "name": "DEFI DEVELOPMENT CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DG",
+      "name": "DOLLAR GEN CORP NEW COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DHI",
+      "name": "D R HORTON INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DHR",
+      "name": "DANAHER CORPORATION COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DIS",
+      "name": "DISNEY WALT CO COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DJT",
+      "name": "TRUMP MEDIA & TECHNOLOGY GROUP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DKNG",
+      "name": "DRAFTKINGS INC NEW COM CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DLR",
+      "name": "DIGITAL RLTY TR INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DLTR",
+      "name": "DOLLAR TREE INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DNN",
+      "name": "DENISON MINES CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DNUT",
+      "name": "KRISPY KREME INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DOCN",
+      "name": "DIGITALOCEAN HLDGS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DOCU",
+      "name": "DOCUSIGN INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DOW",
+      "name": "DOW INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DUOL",
+      "name": "DUOLINGO INC CL A COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DVN",
+      "name": "DEVON ENERGY CORP NEW COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "DXCM",
+      "name": "DEXCOM INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "EA",
+      "name": "ELECTRONIC ARTS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "EBAY",
+      "name": "EBAY INC. COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "EH",
+      "name": "EHANG HLDGS LTD ADS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "EL",
+      "name": "LAUDER ESTEE COS INC CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ELF",
+      "name": "E L F BEAUTY INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "EMR",
+      "name": "EMERSON ELEC CO COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ENPH",
+      "name": "ENPHASE ENERGY INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ENVX",
+      "name": "ENOVIX CORPORATION COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "EOG",
+      "name": "EOG RES INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "EOSE",
+      "name": "EOS ENERGY ENTERPRISES INC COM CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "EPD",
+      "name": "ENTERPRISE PRODS PARTNERS L P COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "EQT",
+      "name": "EQT CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ET",
+      "name": "ENERGY TRANSFER L P COM UT LTD PTN",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ETN",
+      "name": "EATON CORP PLC SHS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ETSY",
+      "name": "ETSY INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "EXPE",
+      "name": "EXPEDIA GROUP INC COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "F",
+      "name": "FORD MTR CO COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "FCEL",
+      "name": "FUELCELL ENERGY INC COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "FCX",
+      "name": "FREEPORT-MCMORAN INC CL B",
+      "type": "Equity"
+    },
+    {
+      "ticker": "FDX",
+      "name": "FEDEX CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "FFAI",
+      "name": "FARADAY FUTURE INTLGT ELEC INC COM NEW CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "FHN",
+      "name": "FIRST HORIZON CORPORATION COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "FIG",
+      "name": "FIGMA INC CLASS A COM STK",
+      "type": "Equity"
+    },
+    {
+      "ticker": "FIS",
+      "name": "FIDELITY NATL INFORMATION SVCS COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "FLY",
+      "name": "FIREFLY AEROSPACE INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "FRMI",
+      "name": "FERMI INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "FSLR",
+      "name": "FIRST SOLAR INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "FSLY",
+      "name": "FASTLY INC CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "FTAI",
+      "name": "FTAI AVIATION LTD SHS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "FTNT",
+      "name": "FORTINET INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "FUBO",
+      "name": "FUBOTV INC CLASS A COM SHS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "FUTU",
+      "name": "FUTU HLDGS LTD SPON ADS CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GAP",
+      "name": "GAP INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GD",
+      "name": "GENERAL DYNAMICS CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GDDY",
+      "name": "GODADDY INC CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GE",
+      "name": "GE AEROSPACE COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GEHC",
+      "name": "GE HEALTHCARE TECHNOLOGIES INC COMMON STOCK",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GEMI",
+      "name": "GEMINI SPACE STA INC CL A COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GEV",
+      "name": "GE VERNOVA INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GILD",
+      "name": "GILEAD SCIENCES INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GLW",
+      "name": "CORNING INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GLXY",
+      "name": "GALAXY DIGITAL INC. CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GM",
+      "name": "GENERAL MTRS CO COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GME",
+      "name": "GAMESTOP CORP NEW CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GNRC",
+      "name": "GENERAC HLDGS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GOOG",
+      "name": "ALPHABET INC CAP STK CL C",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GOOGL",
+      "name": "ALPHABET INC CAP STK CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GOOS",
+      "name": "CANADA GOOSE HLDGS INC SHS SUB VTG",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GPRO",
+      "name": "GOPRO INC CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GRAB",
+      "name": "GRAB HOLDINGS LIMITED CLASS A ORD",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GRRR",
+      "name": "GORILLA TECHNOLOGY GROUP INC SHS NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GS",
+      "name": "GOLDMAN SACHS GROUP INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GSK",
+      "name": "GSK PLC SPONSORED ADR",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GTLB",
+      "name": "GITLAB INC CLASS A COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "GTM",
+      "name": "ZOOMINFO TECHNOLOGIES INC COMMON STOCK",
+      "type": "Equity"
+    },
+    {
+      "ticker": "HAL",
+      "name": "HALLIBURTON CO COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "HD",
+      "name": "HOME DEPOT INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "HIMS",
+      "name": "HIMS & HERS HEALTH INC COM CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "HIVE",
+      "name": "HIVE DIGITAL TECHNOLOGIES LTD COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "HL",
+      "name": "HECLA MNG CO COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "HLF",
+      "name": "HERBALIFE LTD COM SHS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "HLT",
+      "name": "HILTON WORLDWIDE HLDGS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "HOG",
+      "name": "HARLEY DAVIDSON INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "HON",
+      "name": "HONEYWELL INTL INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "HOOD",
+      "name": "ROBINHOOD MKTS INC COM CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "HPE",
+      "name": "HEWLETT PACKARD ENTERPRISE CO COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "HPQ",
+      "name": "HP INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "HRL",
+      "name": "HORMEL FOODS CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "HSBC",
+      "name": "HSBC HLDGS PLC SPON ADR NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "HSY",
+      "name": "HERSHEY CO COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "HTZ",
+      "name": "HERTZ GLOBAL HLDGS INC COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "HUM",
+      "name": "HUMANA INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "HUT",
+      "name": "HUT 8 CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "HWM",
+      "name": "HOWMET AEROSPACE INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "IBKR",
+      "name": "INTERACTIVE BROKERS GROUP INC COM CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "IBM",
+      "name": "INTERNATIONAL BUSINESS MACHS COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "INO",
+      "name": "INOVIO PHARMACEUTICALS INC COM SHS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "INOD",
+      "name": "INNODATA INC COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "INTC",
+      "name": "INTEL CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "INTU",
+      "name": "INTUIT COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "IONQ",
+      "name": "IONQ INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "IOT",
+      "name": "SAMSARA INC COM CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "IOVA",
+      "name": "IOVANCE BIOTHERAPEUTICS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "IP",
+      "name": "INTERNATIONAL PAPER CO COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "IQ",
+      "name": "IQIYI INC SPONSORED ADS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "IREN",
+      "name": "IREN LIMITED ORDINARY SHARES",
+      "type": "Equity"
+    },
+    {
+      "ticker": "IRM",
+      "name": "IRON MTN INC DEL COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "ISRG",
+      "name": "INTUITIVE SURGICAL INC COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "JBLU",
+      "name": "JETBLUE AWYS CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "JD",
+      "name": "JD.COM INC SPON ADS CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "JMIA",
+      "name": "JUMIA TECHNOLOGIES AG SPONSORED ADS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "JNJ",
+      "name": "JOHNSON & JOHNSON COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "JOBY",
+      "name": "JOBY AVIATION INC COMMON STOCK",
+      "type": "Equity"
+    },
+    {
+      "ticker": "JPM",
+      "name": "JPMORGAN CHASE & CO. COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "KGC",
+      "name": "KINROSS GOLD CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "KHC",
+      "name": "KRAFT HEINZ CO COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "KKR",
+      "name": "KKR & CO INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "KMB",
+      "name": "KIMBERLY-CLARK CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "KMI",
+      "name": "KINDER MORGAN INC DEL COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "KO",
+      "name": "COCA COLA CO COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "KOPN",
+      "name": "KOPIN CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "KR",
+      "name": "KROGER CO COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "KSS",
+      "name": "KOHLS CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "KTOS",
+      "name": "KRATOS DEFENSE & SEC SOLUTIONS COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "KVUE",
+      "name": "KENVUE INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LAC",
+      "name": "LITHIUM AMERS CORP NEW COM SHS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LAES",
+      "name": "SEALSQ CORP ORD SHS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LASE",
+      "name": "LASER PHOTONICS CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LCID",
+      "name": "LUCID GROUP INC COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LDI",
+      "name": "LOANDEPOT INC COM CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LEN",
+      "name": "LENNAR CORP CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LEVI",
+      "name": "LEVI STRAUSS & CO NEW CL A COM STK",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LHX",
+      "name": "L3HARRIS TECHNOLOGIES INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LI",
+      "name": "LI AUTO INC SPONSORED ADS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LITE",
+      "name": "LUMENTUM HLDGS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LLY",
+      "name": "ELI LILLY & CO COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LMND",
+      "name": "LEMONADE INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LMT",
+      "name": "LOCKHEED MARTIN CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LNG",
+      "name": "CHENIERE ENERGY INC COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LOW",
+      "name": "LOWES COS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LQDA",
+      "name": "LIQUIDIA CORPORATION COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LRCX",
+      "name": "LAM RESEARCH CORP COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LULU",
+      "name": "LULULEMON ATHLETICA INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LUMN",
+      "name": "LUMEN TECHNOLOGIES INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LUNR",
+      "name": "INTUITIVE MACHINES INC CLASS A COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LUV",
+      "name": "SOUTHWEST AIRLS CO COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LVS",
+      "name": "LAS VEGAS SANDS CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LW",
+      "name": "LAMB WESTON HLDGS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "LYFT",
+      "name": "LYFT INC CL A COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "M",
+      "name": "MACYS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MA",
+      "name": "MASTERCARD INCORPORATED CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MANU",
+      "name": "MANCHESTER UTD PLC NEW ORD CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MAR",
+      "name": "MARRIOTT INTL INC NEW CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MARA",
+      "name": "MARA HOLDINGS INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MBLY",
+      "name": "MOBILEYE GLOBAL INC COMMON CLASS A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MCD",
+      "name": "MCDONALDS CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MCHP",
+      "name": "MICROCHIP TECHNOLOGY INC. COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MCK",
+      "name": "MCKESSON CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MDB",
+      "name": "MONGODB INC CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MDLZ",
+      "name": "MONDELEZ INTL INC CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MDT",
+      "name": "MEDTRONIC PLC SHS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MELI",
+      "name": "MERCADOLIBRE INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "META",
+      "name": "META PLATFORMS INC CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MGM",
+      "name": "MGM RESORTS INTERNATIONAL COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MLCO",
+      "name": "MELCO RESORTS AND ENTMNT LTD ADR",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MMM",
+      "name": "3M CO COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MNKD",
+      "name": "MANNKIND CORP COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MO",
+      "name": "ALTRIA GROUP INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MP",
+      "name": "MP MATERIALS CORP COM CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MPW",
+      "name": "MEDICAL PPTYS TRUST INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MRK",
+      "name": "MERCK & CO INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MRNA",
+      "name": "MODERNA INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MRVL",
+      "name": "MARVELL TECHNOLOGY INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MS",
+      "name": "MORGAN STANLEY COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MSFT",
+      "name": "MICROSOFT CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MSTR",
+      "name": "STRATEGY INC CL A NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MT",
+      "name": "ARCELORMITTAL SA LUXEMBOURG NY REGISTRY SH",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MU",
+      "name": "MICRON TECHNOLOGY INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "MVIS",
+      "name": "MICROVISION INC DEL COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "NAK",
+      "name": "NORTHERN DYNASTY MINERALS LTD COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "NB",
+      "name": "NIOCORP DEVS LTD COM NEW",
+      "type": "Equity"
+    },
+    {
+      "ticker": "NBIS",
+      "name": "NEBIUS GROUP N.V. SHS CLASS A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "NCLH",
+      "name": "NORWEGIAN CRUISE LINE HLDG LTD SHS",
+      "type": "Equity"
+    },
+    {
+      "ticker": "NEE",
+      "name": "NEXTERA ENERGY INC COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "NEM",
+      "name": "NEWMONT CORP COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "NET",
+      "name": "CLOUDFLARE INC CL A COM",
+      "type": "Equity"
+    },
+    {
+      "ticker": "NFE",
+      "name": "NEW FORTRESS ENERGY INC COM CL A",
+      "type": "Equity"
+    },
+    {
+      "ticker": "NIO",
+      "name": "NIO INC SPON ADS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "NKE",
+      "name": "NIKE INC CL B",
+      "type": "ETF"
+    },
+    {
+      "ticker": "NLY",
+      "name": "ANNALY CAPITAL MANAGEMENT INC COM NEW",
+      "type": "ETF"
+    },
+    {
+      "ticker": "NMAX",
+      "name": "NEWSMAX INC COM SHS CLASS B",
+      "type": "ETF"
+    },
+    {
+      "ticker": "NN",
+      "name": "NEXTNAV INC COMMON STOCK",
+      "type": "ETF"
+    },
+    {
+      "ticker": "NNE",
+      "name": "NANO NUCLEAR ENERGY INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "NOK",
+      "name": "NOKIA CORP SPONSORED ADR",
+      "type": "ETF"
+    },
+    {
+      "ticker": "NOW",
+      "name": "SERVICENOW INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "NRG",
+      "name": "NRG ENERGY INC COM NEW",
+      "type": "ETF"
+    },
+    {
+      "ticker": "NSC",
+      "name": "NORFOLK SOUTHN CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "NTAP",
+      "name": "NETAPP INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "NTR",
+      "name": "NUTRIEN LTD COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "NU",
+      "name": "NU HLDGS LTD ORD SHS CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "NVAX",
+      "name": "NOVAVAX INC COM NEW",
+      "type": "ETF"
+    },
+    {
+      "ticker": "NVDA",
+      "name": "NVIDIA CORPORATION COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "NVO",
+      "name": "NOVO-NORDISK A S ADR",
+      "type": "ETF"
+    },
+    {
+      "ticker": "NVTS",
+      "name": "NAVITAS SEMICONDUCTOR CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "NXPI",
+      "name": "NXP SEMICONDUCTORS N V COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "OKLO",
+      "name": "OKLO INC COM CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "OKTA",
+      "name": "OKTA INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "ON",
+      "name": "ON SEMICONDUCTOR CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "ONDS",
+      "name": "ONDAS INC",
+      "type": "ETF"
+    },
+    {
+      "ticker": "ONON",
+      "name": "ON HLDG AG NAMEN AKT A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "OPAD",
+      "name": "OFFERPAD SOLUTIONS INC COM CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "OPEN",
+      "name": "OPENDOOR TECHNOLOGIES INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "ORCL",
+      "name": "ORACLE CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "OSCR",
+      "name": "OSCAR HEALTH INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "OUST",
+      "name": "OUSTER INC COM NEW",
+      "type": "ETF"
+    },
+    {
+      "ticker": "OWL",
+      "name": "BLUE OWL CAPITAL INC COM CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "OXY",
+      "name": "OCCIDENTAL PETE CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PAA",
+      "name": "PLAINS ALL AMERN PIPELINE L P UNIT LTD PARTN",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PAAS",
+      "name": "PAN AMERN SILVER CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PANW",
+      "name": "PALO ALTO NETWORKS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PATH",
+      "name": "UIPATH INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PBR",
+      "name": "PETROLEO BRASILEIRO SA PETROBR SPONSORED ADR",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PCG",
+      "name": "PG&E CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PCT",
+      "name": "PURECYCLE TECHNOLOGIES INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PDD",
+      "name": "PDD HOLDINGS INC SPONSORED ADS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PEP",
+      "name": "PEPSICO INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PFE",
+      "name": "PFIZER INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PG",
+      "name": "PROCTER & GAMBLE CO COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PGR",
+      "name": "PROGRESSIVE CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PHM",
+      "name": "PULTE GROUP INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PINS",
+      "name": "PINTEREST INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PL",
+      "name": "PLANET LABS PBC COM CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PLTR",
+      "name": "PALANTIR TECHNOLOGIES INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PLUG",
+      "name": "PLUG POWER INC COM NEW",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PM",
+      "name": "PHILIP MORRIS INTL INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PNC",
+      "name": "PNC FINL SVCS GROUP INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PNFP",
+      "name": "PINNACLE FINL PARTNERS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "POET",
+      "name": "POET TECHNOLOGIES INC COM NEW",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PONY",
+      "name": "PONY AI INC SPONSORED ADS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PPG",
+      "name": "PPG INDS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PSKY",
+      "name": "PARAMOUNT SKYDANCE CORP COM CL B",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PSQH",
+      "name": "PSQ HOLDINGS INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PSX",
+      "name": "PHILLIPS 66 COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PTON",
+      "name": "PELOTON INTERACTIVE INC CL A COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "PYPL",
+      "name": "PAYPAL HLDGS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "QBTS",
+      "name": "D-WAVE QUANTUM INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "QCOM",
+      "name": "QUALCOMM INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "QS",
+      "name": "QUANTUMSCAPE CORP COM CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "QSI",
+      "name": "QUANTUM SI INC COM CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "QUBT",
+      "name": "QUANTUM COMPUTING INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "QXO",
+      "name": "QXO INC COM NEW",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RANI",
+      "name": "RANI THERAPEUTICS HLDGS INC COM CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RBLX",
+      "name": "ROBLOX CORP CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RBRK",
+      "name": "RUBRIK INC. CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RCAT",
+      "name": "RED CAT HLDGS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RCL",
+      "name": "ROYAL CARIBBEAN GROUP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RDDT",
+      "name": "REDDIT INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RDW",
+      "name": "REDWIRE CORPORATION COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "REGN",
+      "name": "REGENERON PHARMACEUTICALS COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "REPL",
+      "name": "REPLIMUNE GROUP INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RGTI",
+      "name": "RIGETTI COMPUTING INC COMMON STOCK",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RH",
+      "name": "RH COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RIG",
+      "name": "TRANSOCEAN LTD REGISTERED SHS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RILY",
+      "name": "BRC GROUP HOLDINGS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RIOT",
+      "name": "RIOT PLATFORMS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RIVN",
+      "name": "RIVIAN AUTOMOTIVE INC COM CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RKLB",
+      "name": "ROCKET LAB CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RKT",
+      "name": "ROCKET COS INC COM CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RNG",
+      "name": "RINGCENTRAL INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "ROKU",
+      "name": "ROKU INC COM CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "ROST",
+      "name": "ROSS STORES INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RR",
+      "name": "RICHTECH ROBOTICS INC CL B",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RTX",
+      "name": "RTX CORPORATION COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RUM",
+      "name": "RUMBLE INC COM CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RUN",
+      "name": "SUNRUN INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RXRX",
+      "name": "RECURSION PHARMACEUTICALS INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "RZLV",
+      "name": "REZOLVE AI PLC ORD SHS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "S",
+      "name": "SENTINELONE INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SAP",
+      "name": "SAP SE SPON ADR",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SATS",
+      "name": "ECHOSTAR CORP CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SAVA",
+      "name": "CASSAVA SCIENCES INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SBET",
+      "name": "SHARPLINK GAMING INC COM NEW",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SBUX",
+      "name": "STARBUCKS CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SCCO",
+      "name": "SOUTHERN COPPER CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SCHW",
+      "name": "SCHWAB CHARLES CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SE",
+      "name": "SEA LTD SPONSORD ADS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SEDG",
+      "name": "SOLAREDGE TECHNOLOGIES INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SERV",
+      "name": "SERVE ROBOTICS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SFIX",
+      "name": "STITCH FIX INC COM CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SG",
+      "name": "SWEETGREEN INC COM CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SHAK",
+      "name": "SHAKE SHACK INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SHEL",
+      "name": "SHELL PLC SPON ADS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SHOP",
+      "name": "SHOPIFY INC CL A SUB VTG SHS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SIG",
+      "name": "SIGNET JEWELERS LIMITED SHS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SIRI",
+      "name": "SIRIUSXM HOLDINGS INC COMMON STOCK",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SKYT",
+      "name": "SKYWATER TECHNOLOGY INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SLB",
+      "name": "SLB LIMITED COM STK",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SLS",
+      "name": "SELLAS LIFE SCIENCES GROUP INC COM NEW",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SMCI",
+      "name": "SUPER MICRO COMPUTER INC COM NEW",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SMMT",
+      "name": "SUMMIT THERAPEUTICS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SMR",
+      "name": "NUSCALE PWR CORP CL A COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SNAP",
+      "name": "SNAP INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SNDK",
+      "name": "SANDISK CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SNOW",
+      "name": "SNOWFLAKE INC COM SHS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SNPS",
+      "name": "SYNOPSYS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SO",
+      "name": "SOUTHERN CO COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SOC",
+      "name": "SABLE OFFSHORE CORP COM SHS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SOFI",
+      "name": "SOFI TECHNOLOGIES INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SONY",
+      "name": "SONY GROUP CORP SPONSORED ADR",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SOUN",
+      "name": "SOUNDHOUND AI INC CLASS A COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SPCE",
+      "name": "VIRGIN GALACTIC HOLDINGS INC COM NEW",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SPGI",
+      "name": "S&P GLOBAL INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SPOT",
+      "name": "SPOTIFY TECHNOLOGY S A SHS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SRPT",
+      "name": "SAREPTA THERAPEUTICS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "STLA",
+      "name": "STELLANTIS N.V SHS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "STUB",
+      "name": "STUBHUB HLDGS INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "STX",
+      "name": "SEAGATE TECHNOLOGY HLDNGS PLC ORD SHS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "STZ",
+      "name": "CONSTELLATION BRANDS INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SU",
+      "name": "SUNCOR ENERGY INC NEW COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "SYM",
+      "name": "SYMBOTIC INC CLASS A COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "T",
+      "name": "AT&T INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TDOC",
+      "name": "TELADOC HEALTH INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TE",
+      "name": "T1 ENERGY INC COM NEW",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TEAM",
+      "name": "ATLASSIAN CORPORATION CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TECK",
+      "name": "TECK RESOURCES LTD CL B",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TEM",
+      "name": "TEMPUS AI INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TER",
+      "name": "TERADYNE INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TEVA",
+      "name": "TEVA PHARMACEUTICAL INDS LTD SPONSORED ADS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TGT",
+      "name": "TARGET CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TIGR",
+      "name": "UP FINTECH HLDG LTD SPONSORED ADS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TJX",
+      "name": "TJX COS INC NEW COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TLN",
+      "name": "TALEN ENERGY CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TLRY",
+      "name": "TILRAY BRANDS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TMC",
+      "name": "TMC THE METALS COMPANY INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TMO",
+      "name": "THERMO FISHER SCIENTIFIC INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TMQ",
+      "name": "TRILOGY METALS INC NEW COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TMUS",
+      "name": "T-MOBILE US INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TOST",
+      "name": "TOAST INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TPR",
+      "name": "TAPESTRY INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TRIP",
+      "name": "TRIPADVISOR INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TSCO",
+      "name": "TRACTOR SUPPLY CO COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TSLA",
+      "name": "TESLA INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TSM",
+      "name": "TAIWAN SEMICONDUCTOR MFG LTD SPONSORED ADS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TSSI",
+      "name": "TSS INC DEL COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TTD",
+      "name": "THE TRADE DESK INC COM CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TTWO",
+      "name": "TAKE-TWO INTERACTIVE SOFTWARE COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TWLO",
+      "name": "TWILIO INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TXN",
+      "name": "TEXAS INSTRS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "TXRH",
+      "name": "TEXAS ROADHOUSE INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "U",
+      "name": "UNITY SOFTWARE INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "UAL",
+      "name": "UNITED AIRLS HLDGS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "UAMY",
+      "name": "UNITED STATES ANTIMONY CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "UBER",
+      "name": "UBER TECHNOLOGIES INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "UEC",
+      "name": "URANIUM ENERGY CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "ULTA",
+      "name": "ULTA BEAUTY INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "UMAC",
+      "name": "UNUSUAL MACHS INC COM SHS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "UNH",
+      "name": "UNITEDHEALTH GROUP INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "UNP",
+      "name": "UNION PAC CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "UPS",
+      "name": "UNITED PARCEL SERVICE INC CL B",
+      "type": "ETF"
+    },
+    {
+      "ticker": "UPST",
+      "name": "UPSTART HLDGS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "UPXI",
+      "name": "UPEXI INC COM NEW",
+      "type": "ETF"
+    },
+    {
+      "ticker": "URBN",
+      "name": "URBAN OUTFITTERS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "URI",
+      "name": "UNITED RENTALS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "USAR",
+      "name": "USA RARE EARTH INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "USB",
+      "name": "US BANCORP DEL COM NEW",
+      "type": "ETF"
+    },
+    {
+      "ticker": "UUUU",
+      "name": "ENERGY FUELS INC COM NEW",
+      "type": "ETF"
+    },
+    {
+      "ticker": "UWMC",
+      "name": "UWM HOLDINGS CORPORATION COM CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "V",
+      "name": "VISA INC COM CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "VALE",
+      "name": "VALE S A SPONSORED ADS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "VERU",
+      "name": "VERU INC COM NEW",
+      "type": "ETF"
+    },
+    {
+      "ticker": "VFC",
+      "name": "V F CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "VG",
+      "name": "VENTURE GLOBAL INC COM CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "VISN",
+      "name": "VISTANCE NETWORKS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "VKTX",
+      "name": "VIKING THERAPEUTICS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "VLO",
+      "name": "VALERO ENERGY CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "VOD",
+      "name": "VODAFONE GROUP PLC SPONSORED ADR",
+      "type": "ETF"
+    },
+    {
+      "ticker": "VRT",
+      "name": "VERTIV HOLDINGS CO COM CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "VRTX",
+      "name": "VERTEX PHARMACEUTICALS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "VST",
+      "name": "VISTRA CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "VZ",
+      "name": "VERIZON COMMUNICATIONS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "W",
+      "name": "WAYFAIR INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "WBD",
+      "name": "WARNER BROS DISCOVERY INC COM SER A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "WDAY",
+      "name": "WORKDAY INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "WDC",
+      "name": "WESTERN DIGITAL CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "WEN",
+      "name": "WENDYS CO COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "WFC",
+      "name": "WELLS FARGO CO NEW COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "WGS",
+      "name": "GENEDX HOLDINGS CORP COM CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "WMB",
+      "name": "WILLIAMS COS INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "WMT",
+      "name": "WALMART INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "WOOF",
+      "name": "PETCO HEALTH & WELLNESS CO INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "WPM",
+      "name": "WHEATON PRECIOUS METALS CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "WRBY",
+      "name": "WARBY PARKER INC CL A COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "WULF",
+      "name": "TERAWULF INC COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "WWR",
+      "name": "WESTWATER RES INC COM NEW",
+      "type": "ETF"
+    },
+    {
+      "ticker": "WYNN",
+      "name": "WYNN RESORTS LTD COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "XOM",
+      "name": "EXXON MOBIL CORP COM",
+      "type": "ETF"
+    },
+    {
+      "ticker": "XP",
+      "name": "XP INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "XPEV",
+      "name": "XPENG INC ADS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "XYZ",
+      "name": "BLOCK INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "ZETA",
+      "name": "ZETA GLOBAL HOLDINGS CORP CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "ZIM",
+      "name": "ZIM INTEGRATED SHIPPING SERV SHS",
+      "type": "ETF"
+    },
+    {
+      "ticker": "ZM",
+      "name": "ZOOM COMMUNICATIONS INC CL A",
+      "type": "ETF"
+    },
+    {
+      "ticker": "ZS",
+      "name": "ZSCALER INC COM",
+      "type": "ETF"
+    }
+  ]
+}

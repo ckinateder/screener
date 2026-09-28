@@ -12,19 +12,54 @@ import {
   type LineWidth,
 } from "lightweight-charts";
 import { useEffect, useRef, useState } from "react";
-import type { ChartData, IndicatorSetting } from "../api/client";
+import type { Bar, ChartData, IndicatorSetting } from "../api/client";
 import { formatPrice } from "../lib/format";
 import { appliesTo, seriesKeys, seriesLabel, timeKey, volumeData } from "../lib/series";
+import { barAtOrBefore, dayNumber, dayToLogical, logicalToDay } from "../lib/sync";
 import { theme } from "../theme";
 
 const INITIAL_BARS = { D: 180, W: 150 } as const; // bars visible when a symbol/timeframe first loads
+const RIGHT_OFFSET = 8; // empty bars right of the latest one, unless the right edge is locked
 const HOVER_EXTRA_WIDTH = 2; // px added to a hovered line
 const HOVER_ANIMATION_MS = 150;
+
+/** Visible X range as fractional days since epoch (see lib/sync.ts), so D and W charts align exactly. */
+export interface SyncRange {
+  from: number;
+  to: number;
+}
+
+/** Lets a parent drive this chart from another one (crosshair + X-axis sync). */
+export interface ChartHandle {
+  /** Show the crosshair at the bar on/before `time` (null clears it). */
+  showCrosshair: (time: string | null) => void;
+  getRange: () => SyncRange | null;
+  setRange: (range: SyncRange) => void;
+  /** Widen the price axis to at least `px`, so stacked charts' plot areas line up. */
+  setMinScaleWidth: (px: number) => void;
+}
 
 interface Props {
   data: ChartData;
   settings: IndicatorSetting[];
   onHover: (time: string | null) => void;
+  /** User-originated crosshair moves only (not ones applied via the handle). */
+  onCrosshair?: (time: string | null) => void;
+  /** User-originated scroll/zoom only. */
+  onRangeChange?: (range: SyncRange) => void;
+  /** On load / symbol or timeframe change: a range to open at instead of the default zoom. */
+  getInitialRange?: () => SyncRange | null;
+  /** Current price-axis width in px, reported after renders. */
+  onScaleWidth?: (px: number) => void;
+  onReady?: (handle: ChartHandle | null) => void;
+  /** Stop scrolling past the latest bar. */
+  lockRightEdge?: boolean;
+}
+
+/** With the right edge locked, pull the view back if it shows space past the latest bar. */
+function clampToLatest(chart: IChartApi, barCount: number) {
+  const range = chart.timeScale().getVisibleLogicalRange();
+  if (range && range.to > barCount - 1) chart.timeScale().scrollToRealTime(); // latest bar at the right edge
 }
 
 interface ChartRefs {
@@ -84,12 +119,28 @@ function stopWidthAnimations(r: ChartRefs) {
   r.highlighted = null;
 }
 
-export function Chart({ data, settings, onHover }: Props) {
+export function Chart(props: Props) {
+  const { data, settings } = props;
   const containerRef = useRef<HTMLDivElement>(null);
   const refs = useRef<ChartRefs | null>(null);
   const viewKey = useRef<string>("");
-  const onHoverRef = useRef(onHover);
-  onHoverRef.current = onHover;
+  // Latest callbacks, read by chart event handlers that are subscribed once at creation.
+  const callbacks = useRef(props);
+  callbacks.current = props;
+  const bars = useRef<{ list: Bar[]; times: string[]; days: number[] }>({ list: [], times: [], days: [] });
+  // Set while applying a synced crosshair/range, so the resulting chart events aren't echoed back
+  // to the other chart (which would bounce between the two forever).
+  const syncingCrosshair = useRef(false);
+  const syncingRange = useRef(0);
+
+  // Range-change events can arrive a frame or two after the change, so release over 2 frames.
+  const releaseRangeGuard = () => requestAnimationFrame(() => requestAnimationFrame(() => syncingRange.current--));
+  // Price-axis width is only known after the chart renders; skip if the chart was removed meanwhile.
+  const reportScaleWidth = () =>
+    requestAnimationFrame(() => {
+      const chart = refs.current?.chart;
+      if (chart) callbacks.current.onScaleWidth?.(chart.priceScale("right").width());
+    });
   const [tooltip, setTooltip] = useState<Tooltip | null>(null);
 
   // Create the chart once; series are updated in place below.
@@ -111,7 +162,7 @@ export function Chart({ data, settings, onHover }: Props) {
         horzLine: { color: theme.crosshair, labelBackgroundColor: "#363a45" },
       },
       rightPriceScale: { borderColor: theme.border },
-      timeScale: { borderColor: theme.border, rightOffset: 8 },
+      timeScale: { borderColor: theme.border, rightOffset: RIGHT_OFFSET },
     });
     const candles = chart.addSeries(CandlestickSeries, {
       upColor: theme.up,
@@ -129,7 +180,10 @@ export function Chart({ data, settings, onHover }: Props) {
     chart.panes()[0].setStretchFactor(4);
     chart.panes()[1].setStretchFactor(1);
     chart.subscribeCrosshairMove((param) => {
-      onHoverRef.current(timeKey(param.time));
+      const time = timeKey(param.time);
+      callbacks.current.onHover(time);
+      if (syncingCrosshair.current) return;
+      callbacks.current.onCrosshair?.(time);
       // hoveredSeries is set when the cursor is on a series' line (the library does the hit-testing).
       const hovered = param.hoveredSeries as ISeriesApi<"Line"> | undefined;
       const r = refs.current;
@@ -146,8 +200,50 @@ export function Chart({ data, settings, onHover }: Props) {
         flip: param.point.x > chart.paneSize(0).width - 220,
       });
     });
+    // Logical (bar-index) ranges, not time ranges: they're fractional and extend into the empty
+    // space past the last bar, which time ranges can't express.
+    const getRange = (): SyncRange | null => {
+      const lr = chart.timeScale().getVisibleLogicalRange();
+      const from = lr && logicalToDay(bars.current.days, lr.from);
+      const to = lr && logicalToDay(bars.current.days, lr.to);
+      return from != null && to != null ? { from, to } : null;
+    };
+    chart.timeScale().subscribeVisibleLogicalRangeChange(() => {
+      reportScaleWidth(); // zooming can change the price labels' width
+      if (syncingRange.current > 0) return;
+      const range = getRange();
+      if (range) callbacks.current.onRangeChange?.(range);
+    });
     refs.current = { chart, candles, volume, lines: new Map(), lineInfo: new Map(), highlighted: null, widths: new Map() };
+
+    const handle: ChartHandle = {
+      showCrosshair: (time) => {
+        const i = time == null ? -1 : barAtOrBefore(bars.current.times, time);
+        const bar = bars.current.list[i];
+        syncingCrosshair.current = true;
+        try {
+          if (bar) chart.setCrosshairPosition(bar.close, bar.time, candles);
+          else chart.clearCrosshairPosition();
+        } finally {
+          syncingCrosshair.current = false;
+        }
+        callbacks.current.onHover(bar?.time ?? null);
+      },
+      getRange,
+      setRange: (range) => {
+        const from = dayToLogical(bars.current.days, range.from);
+        const to = dayToLogical(bars.current.days, range.to);
+        if (from == null || to == null) return;
+        syncingRange.current++;
+        chart.timeScale().setVisibleLogicalRange({ from, to });
+        releaseRangeGuard();
+      },
+      setMinScaleWidth: (px) => chart.applyOptions({ rightPriceScale: { minimumWidth: px } }),
+    };
+    callbacks.current.onReady?.(handle);
+
     return () => {
+      callbacks.current.onReady?.(null);
       if (refs.current) stopWidthAnimations(refs.current);
       chart.remove();
       refs.current = null;
@@ -158,6 +254,12 @@ export function Chart({ data, settings, onHover }: Props) {
   useEffect(() => {
     const r = refs.current;
     if (!r) return;
+    // setData and the view reset below both move the visible range. Neither is a user scroll, so
+    // don't push them onto the other chart; a newly loaded chart *pulls* the other's range instead.
+    // Events can arrive a frame or two later, so hold the guard across 2 frames.
+    syncingRange.current++;
+    const times = data.bars.map((b) => b.time);
+    bars.current = { list: data.bars, times, days: times.map(dayNumber) };
     r.candles.setData(data.bars);
     r.volume.setData(volumeData(data.bars, theme.upVolume, theme.downVolume));
 
@@ -198,13 +300,37 @@ export function Chart({ data, settings, onHover }: Props) {
     }
 
     // Reset the view only when the symbol or timeframe changes, not on refreshes/setting edits.
+    // When X-synced with another chart, open at its range; otherwise at the default zoom.
     const key = `${data.symbol}:${data.tf}`;
     if (viewKey.current !== key) {
       viewKey.current = key;
+      const synced = callbacks.current.getInitialRange?.();
+      const from = synced && dayToLogical(bars.current.days, synced.from);
+      const to = synced && dayToLogical(bars.current.days, synced.to);
       const n = data.bars.length;
-      r.chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, n - INITIAL_BARS[data.tf]), to: n + 8 });
+      r.chart
+        .timeScale()
+        .setVisibleLogicalRange(
+          from != null && to != null
+            ? { from, to }
+            : { from: Math.max(0, n - INITIAL_BARS[data.tf]), to: n - 1 + RIGHT_OFFSET },
+        );
+      if (props.lockRightEdge) clampToLatest(r.chart, n);
     }
+    releaseRangeGuard();
+    // New data can change the price labels' width (e.g. 99.00 -> 1,082.28).
+    reportScaleWidth();
   }, [data, settings]);
+
+  // Right-edge lock. Turning it on while scrolled into the future snaps back to the latest bar
+  // (a user action, so with X-sync on the other chart follows).
+  const lockRightEdge = props.lockRightEdge ?? false;
+  useEffect(() => {
+    const r = refs.current;
+    if (!r) return;
+    r.chart.applyOptions({ timeScale: { fixRightEdge: lockRightEdge, rightOffset: lockRightEdge ? 0 : RIGHT_OFFSET } });
+    if (lockRightEdge) clampToLatest(r.chart, bars.current.list.length);
+  }, [lockRightEdge]);
 
   return (
     <div ref={containerRef} className="absolute inset-0">

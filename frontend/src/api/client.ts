@@ -2,6 +2,9 @@
 
 export type Tf = "D" | "W";
 
+/** Chart pane as the API numbers it (1-based). */
+export type ApiPane = 1 | 2;
+
 export interface Bar {
   time: string;
   open: number;
@@ -90,13 +93,17 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 const json = (method: string, body: unknown): RequestInit => ({ method, body: JSON.stringify(body) });
 
 export const api = {
-  chart: (symbol: string, tf: Tf, refresh = false) =>
-    request<ChartData>(`/api/chart/${encodeURIComponent(symbol)}?tf=${tf}${refresh ? "&refresh=1" : ""}`),
+  /** `pane` (1 or 2) selects which chart's indicator settings are applied. */
+  chart: (symbol: string, tf: Tf, pane: ApiPane, refresh = false) =>
+    request<ChartData>(
+      `/api/chart/${encodeURIComponent(symbol)}?tf=${tf}&pane=${pane}${refresh ? "&refresh=1" : ""}`,
+    ),
   search: (q: string) => request<SearchResult[]>(`/api/search?q=${encodeURIComponent(q)}`),
-  settings: () => request<IndicatorSetting[]>("/api/settings/indicators"),
-  saveSettings: (settings: IndicatorSetting[]) =>
-    request<IndicatorSetting[]>("/api/settings/indicators", json("PUT", settings)),
-  resetSettings: () => request<IndicatorSetting[]>("/api/settings/indicators", { method: "DELETE" }),
+  settings: (pane: ApiPane) => request<IndicatorSetting[]>(`/api/settings/indicators?pane=${pane}`),
+  saveSettings: (pane: ApiPane, settings: IndicatorSetting[]) =>
+    request<IndicatorSetting[]>(`/api/settings/indicators?pane=${pane}`, json("PUT", settings)),
+  resetSettings: (pane: ApiPane) =>
+    request<IndicatorSetting[]>(`/api/settings/indicators?pane=${pane}`, { method: "DELETE" }),
   /** Throttled server-side, so this is cheap to call on load. */
   refreshWatchlist: (force = false) =>
     request<WatchlistRow[]>(`/api/watchlist/refresh${force ? "?force=true" : ""}`, { method: "POST" }),

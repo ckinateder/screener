@@ -2,7 +2,10 @@ import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
 
-from kaching import api, fetcher
+import sqlite3
+from datetime import date
+
+from kaching import api, db, fetcher
 from kaching.indicators import DEFAULT_CONFIG
 from tests.test_fetcher import FakeMarket
 
@@ -95,6 +98,41 @@ def test_chart_daily_vs_weekly_indicators(client):
     assert {pd.Timestamp(b["time"]).day_name() for b in weekly["bars"]} == {"Monday"}
 
 
+def test_stored_short_history_is_backfilled_once(client, market):
+    # A ticker stored with only recent history (e.g. before MAX, or via `fetch --period 5Y`).
+    conn = db.connect()
+    fetcher.fetch_ticker(conn, "AAPL", date(2024, 1, 1))
+    assert db.date_range(conn, "AAPL")[0] == pd.Timestamp("2024-01-01")
+
+    client.get("/api/chart/AAPL")
+    assert db.date_range(conn, "AAPL")[0] == market.bars.index[0]  # all available history
+    assert db.get_symbol(conn, "AAPL")["full_history"] == 1
+
+    market.calls.clear()
+    client.get("/api/chart/AAPL", params={"refresh": 1})
+    assert all(start > pd.Timestamp("2000-01-01") for start, _ in market.calls)  # no repeat backfill
+
+
+def test_new_ticker_fetches_from_earliest(client, market):
+    client.get("/api/chart/NVDA")
+    assert market.calls[0][0] == pd.Timestamp(fetcher.EARLIEST_START)
+
+
+def test_migrates_old_symbols_table(tmp_path):
+    path = tmp_path / "old.db"
+    old = sqlite3.connect(path)
+    old.execute("CREATE TABLE symbols (ticker TEXT PRIMARY KEY, name TEXT, exchange TEXT, last_fetched TEXT)")
+    old.execute("INSERT INTO symbols VALUES ('AAPL', 'Apple', 'NASDAQ', NULL)")
+    old.commit()
+    old.close()
+    assert db.get_symbol(db.connect(path), "AAPL")["full_history"] == 0
+
+
+def test_large_responses_are_gzipped(client):
+    res = client.get("/api/chart/AAPL", headers={"Accept-Encoding": "gzip"})
+    assert res.headers["content-encoding"] == "gzip"
+
+
 def test_chart_unknown_ticker_404(client):
     assert client.get("/api/chart/BAD").status_code == 404
 
@@ -118,6 +156,30 @@ def test_settings_change_affects_chart(client):
     client.put("/api/settings/indicators", json=cfg)
     after = client.get("/api/chart/AAPL").json()["indicators"]["d_kc:upper"][-1]["value"]
     assert after < before
+
+
+def test_panes_have_independent_settings(client):
+    cfg = [dict(e) for e in DEFAULT_CONFIG]
+    cfg[-2]["multiplier"] = 1.0
+    client.put("/api/settings/indicators", json=cfg)  # pane 1
+    # An unconfigured pane 2 starts as a copy of pane 1...
+    assert client.get("/api/settings/indicators", params={"pane": 2}).json()[-2]["multiplier"] == 1.0
+    # ...then diverges once saved.
+    cfg2 = [dict(e) for e in DEFAULT_CONFIG]
+    cfg2[-2]["multiplier"] = 3.0
+    client.put("/api/settings/indicators", params={"pane": 2}, json=cfg2)
+    assert client.get("/api/settings/indicators").json()[-2]["multiplier"] == 1.0
+    assert client.get("/api/settings/indicators", params={"pane": 2}).json()[-2]["multiplier"] == 3.0
+
+    upper1 = client.get("/api/chart/AAPL").json()["indicators"]["d_kc:upper"][-1]["value"]
+    upper2 = client.get("/api/chart/AAPL", params={"pane": 2}).json()["indicators"]["d_kc:upper"][-1]["value"]
+    assert upper2 > upper1
+
+    # Resetting pane 2 gives defaults, not pane 1's config; pane 1 is untouched.
+    client.delete("/api/settings/indicators", params={"pane": 2})
+    assert client.get("/api/settings/indicators", params={"pane": 2}).json() == DEFAULT_CONFIG
+    assert client.get("/api/settings/indicators").json()[-2]["multiplier"] == 1.0
+    assert client.get("/api/settings/indicators", params={"pane": 3}).status_code == 422
 
 
 @pytest.mark.parametrize("mutate", [

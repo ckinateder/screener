@@ -42,6 +42,7 @@ def market(monkeypatch):
     ("2W", date(2024, 3, 15)),
     ("30D", date(2024, 2, 28)),
     ("2020-01-15", date(2020, 1, 15)),
+    ("max", fetcher.EARLIEST_START),
 ])
 def test_parse_lookback(value, expected):
     assert fetcher.parse_lookback(value, today=TODAY) == expected

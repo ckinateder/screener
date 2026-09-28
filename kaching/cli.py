@@ -47,7 +47,8 @@ def main(argv=None) -> int:
     p_fetch = sub.add_parser("fetch", help="download daily bars into the DB (incremental)")
     p_fetch.add_argument("tickers", nargs="+")
     when = p_fetch.add_mutually_exclusive_group()
-    when.add_argument("--period", default="5Y", help="lookback like 5Y, 6M, 2W, 30D (default 5Y)")
+    when.add_argument("--period", default="MAX",
+                      help="lookback: MAX (all available history, default) or e.g. 5Y, 6M, 2W, 30D")
     when.add_argument("--start", help="start date YYYY-MM-DD")
     p_fetch.set_defaults(func=cmd_fetch)
 

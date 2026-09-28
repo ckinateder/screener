@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useForceRefreshWatchlist, useSetWatchlist, useWatchlist } from "../api/hooks";
 import { changeClass, formatChange, formatPct, formatPrice } from "../lib/format";
-import { useUi } from "../store";
+import { useActivePane, useUi } from "../store";
 import { RefreshIcon, Spinner } from "./ui/Spinner";
 
 export function Watchlist() {
-  const { symbol: activeSymbol, setSymbol, openSearch } = useUi();
+  const { setSymbol, openSearch } = useUi();
+  const activeSymbol = useActivePane().symbol;
   const watchlist = useWatchlist();
   const setWatchlist = useSetWatchlist();
   const refreshAll = useForceRefreshWatchlist();

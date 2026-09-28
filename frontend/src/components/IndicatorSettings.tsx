@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { IndicatorSetting } from "../api/client";
 import { useResetSettings, useSaveSettings, useSettings } from "../api/hooks";
 import { indicatorLabel } from "../lib/series";
-import { useUi } from "../store";
+import { useUi, type PaneIndex } from "../store";
 import { Modal } from "./ui/Modal";
 
 type NumField = "length" | "ema_length" | "atr_length" | "multiplier";
@@ -16,13 +16,21 @@ const FIELDS: Record<IndicatorSetting["kind"], { field: NumField; label: string;
   ],
 };
 
-export function IndicatorSettings() {
-  const setOpen = useUi((s) => s.setSettingsOpen);
-  const close = () => setOpen(false);
-  const settings = useSettings();
-  const [draft, setDraft] = useState<IndicatorSetting[]>(() => structuredClone(settings.data ?? []));
-  const save = useSaveSettings();
-  const reset = useResetSettings();
+/** Indicator settings for one chart pane (each pane has its own set). */
+export function IndicatorSettings({ pane }: { pane: PaneIndex }) {
+  const settings = useSettings(pane);
+  // Build the draft only once this pane's settings have loaded.
+  return settings.data ? <SettingsForm pane={pane} initial={settings.data} /> : null;
+}
+
+function SettingsForm({ pane, initial }: { pane: PaneIndex; initial: IndicatorSetting[] }) {
+  const close = useUi((s) => s.closeSettings);
+  const { symbol, tf } = useUi((s) => s.panes[pane]);
+  const split = useUi((s) => s.layout !== "single");
+  const [draft, setDraft] = useState<IndicatorSetting[]>(() => structuredClone(initial));
+  const save = useSaveSettings(pane);
+  const reset = useResetSettings(pane);
+  const title = split ? `Indicators · Chart ${pane + 1} (${symbol ?? "—"} ${tf === "D" ? "1D" : "1W"})` : "Indicators";
 
   const update = (id: string, patch: Partial<IndicatorSetting>) =>
     setDraft((d) => d.map((s) => (s.id === id ? { ...s, ...patch } : s)));
@@ -33,7 +41,7 @@ export function IndicatorSettings() {
   ];
 
   return (
-    <Modal title="Indicators" onClose={close} width="max-w-2xl">
+    <Modal title={title} onClose={close} width="max-w-2xl">
       <div className="overflow-y-auto px-4 py-2">
         {groups.map(([title, items]) => (
           <section key={title} className="mb-3">

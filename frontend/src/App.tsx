@@ -1,87 +1,116 @@
-import { useEffect, useMemo, useState } from "react";
-import type { ChartData, IndicatorSetting } from "./api/client";
-import { useChart, useRefreshChart, useSaveSettings, useSettings, useWatchlist } from "./api/hooks";
-import { Chart } from "./components/Chart";
+import { useEffect, useMemo, useRef } from "react";
+import { useChart, useRefreshChart, useWatchlist } from "./api/hooks";
+import type { ChartHandle } from "./components/Chart";
+import { ChartPane, type PaneSync } from "./components/ChartPane";
 import { IndicatorSettings } from "./components/IndicatorSettings";
-import { Legend } from "./components/Legend";
 import { SymbolSearch } from "./components/SymbolSearch";
 import { TopBar } from "./components/TopBar";
-import { Spinner } from "./components/ui/Spinner";
 import { Watchlist } from "./components/Watchlist";
-import { makeLegendLookup } from "./lib/series";
 import { buildUrlSearch } from "./lib/urlState";
-import { useUi } from "./store";
+import { STORAGE_KEY, useActivePane, useUi, type PaneIndex } from "./store";
 
 const FALLBACK_SYMBOL = "SPY";
 
+const GRID = {
+  single: "grid-cols-1",
+  columns: "grid-cols-2 gap-1",
+  rows: "grid-rows-2 gap-1",
+} as const;
+
 export default function App() {
-  const { symbol, tf, setSymbol, search, settingsOpen, watchlistOpen, openSearch } = useUi();
+  const { panes, active: activeIndex, layout, syncRange, lockRightEdge, setPaneSymbol, search, settingsPane, watchlistOpen } =
+    useUi();
+  const active = useActivePane();
   const watchlist = useWatchlist();
-  const settings = useSettings();
-  const chart = useChart(symbol, tf);
-  const refresh = useRefreshChart(symbol, tf);
+  const activeChart = useChart(activeIndex, active.symbol, active.tf); // shares the pane's query cache
+  const refresh = useRefreshChart(activeIndex, active.symbol, active.tf);
 
-  // No symbol in the URL: open the first watchlist entry, else SPY.
+  // No symbol in the URL/saved view: open the first watchlist entry, else SPY.
   useEffect(() => {
-    if (symbol || watchlist.isLoading) return;
-    setSymbol(watchlist.data?.[0]?.symbol ?? FALLBACK_SYMBOL);
-  }, [symbol, watchlist.isLoading, watchlist.data, setSymbol]);
+    if (panes[0].symbol || watchlist.isLoading) return;
+    setPaneSymbol(0, watchlist.data?.[0]?.symbol ?? FALLBACK_SYMBOL);
+  }, [panes, watchlist.isLoading, watchlist.data, setPaneSymbol]);
 
+  // Mirror the view into the URL (bookmarkable) and localStorage (restored on a bare URL).
   useEffect(() => {
-    if (symbol) window.history.replaceState(null, "", buildUrlSearch({ symbol, tf }));
-    document.title = symbol ? `${symbol} · Kaching` : "Kaching";
-  }, [symbol, tf]);
+    const [a, b] = panes;
+    if (!a.symbol) return;
+    const query = buildUrlSearch({
+      symbol: a.symbol, tf: a.tf, symbol2: b.symbol ?? undefined, tf2: b.tf, layout, sync: syncRange, lock: lockRightEdge,
+    });
+    window.history.replaceState(null, "", query);
+    try {
+      localStorage.setItem(STORAGE_KEY, query);
+    } catch {
+      /* storage unavailable (private mode) */
+    }
+    document.title = `${active.symbol ?? a.symbol} · Kaching`;
+  }, [panes, layout, syncRange, lockRightEdge, active.symbol]);
 
-  const data = chart.data;
-  const loading = chart.isFetching && (chart.isPlaceholderData || !data);
+  // Crosshair (always) and X-axis (when enabled) sync between the two charts.
+  const handles = useRef<[ChartHandle | null, ChartHandle | null]>([null, null]);
+  const syncRangeRef = useRef(syncRange);
+  syncRangeRef.current = syncRange;
+  // Both price axes get the wider of the two widths, so the plot areas (and dates) line up.
+  const scaleWidths = useRef<[number, number]>([0, 0]);
+  const appliedScaleWidth = useRef(0);
+  const activeRef = useRef(activeIndex);
+  activeRef.current = activeIndex;
+  /** Snap the inactive chart's X range to the active chart's. */
+  const alignToActive = () => {
+    if (!syncRangeRef.current) return;
+    const source = handles.current[activeRef.current]?.getRange();
+    if (source) handles.current[activeRef.current === 0 ? 1 : 0]?.setRange(source);
+  };
+  const paneSync = useMemo(
+    () =>
+      ([0, 1] as PaneIndex[]).map((i): PaneSync => {
+        const other = () => handles.current[i === 0 ? 1 : 0];
+        return {
+          onReady: (h) => (handles.current[i] = h),
+          onCrosshair: (time) => other()?.showCrosshair(time),
+          onRangeChange: (range) => syncRangeRef.current && other()?.setRange(range),
+          getInitialRange: () => (syncRangeRef.current ? (other()?.getRange() ?? null) : null),
+          onScaleWidth: (px) => {
+            scaleWidths.current[i] = px;
+            const widest = Math.max(...scaleWidths.current);
+            if (!handles.current[1] || widest === appliedScaleWidth.current) return;
+            appliedScaleWidth.current = widest;
+            handles.current.forEach((h) => h?.setMinScaleWidth(widest));
+            // Widening an axis narrows that chart's plot area and shifts its visible range. That
+            // happens while the post-load sync guard is still held, so re-align explicitly once
+            // the charts have re-laid out.
+            requestAnimationFrame(() => requestAnimationFrame(alignToActive));
+          },
+        };
+      }),
+    [],
+  );
+  const split = layout !== "single";
+  // Single layout unmounts pane 2; forget its handle and width so pane 1 stops matching it.
+  useEffect(() => {
+    if (split) return;
+    handles.current[1] = null;
+    scaleWidths.current = [0, 0];
+    appliedScaleWidth.current = 0;
+    handles.current[0]?.setMinScaleWidth(0);
+  }, [split]);
+  // Turning sync on snaps the other chart to the active one.
+  useEffect(alignToActive, [syncRange]);
 
   return (
     <div className="flex h-full flex-col">
-      <TopBar data={data} refreshing={refresh.isPending} onRefresh={() => refresh.mutate()} />
+      <TopBar data={activeChart.data} refreshing={refresh.isPending} onRefresh={() => refresh.mutate()} />
       <div className="flex min-h-0 flex-1">
-        <main className="relative min-w-0 flex-1">
-          {data && settings.data && <ChartPanel data={data} settings={settings.data} />}
-          {loading && (
-            <div className="absolute inset-0 z-20 flex items-center justify-center bg-bg/40">
-              <Spinner size={28} />
-            </div>
-          )}
-          {chart.error && !loading && (
-            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-bg">
-              <p className="text-base">{chart.error.message}</p>
-              <button onClick={() => openSearch("open")} className="rounded bg-accent px-4 py-1.5 text-white">
-                Search symbols
-              </button>
-            </div>
-          )}
+        <main className={`grid min-w-0 flex-1 bg-border ${GRID[layout]}`}>
+          <ChartPane index={0} showActive={split} sync={paneSync[0]} />
+          {split && <ChartPane index={1} showActive={split} sync={paneSync[1]} />}
         </main>
         {watchlistOpen && <Watchlist />}
       </div>
       {search.open && <SymbolSearch />}
-      {settingsOpen && settings.data && <IndicatorSettings />}
+      {/* key: remount per pane so the dialog's draft starts from that pane's settings */}
+      {settingsPane !== null && <IndicatorSettings key={settingsPane} pane={settingsPane} />}
     </div>
-  );
-}
-
-/** Chart + legend. Hover state lives here so mouse moves don't re-render the rest of the app. */
-function ChartPanel({ data, settings }: { data: ChartData; settings: IndicatorSetting[] }) {
-  const [hoverTime, setHoverTime] = useState<string | null>(null);
-  const lookup = useMemo(() => makeLegendLookup(data), [data]);
-  const save = useSaveSettings();
-  const setSettingsOpen = useUi((s) => s.setSettingsOpen);
-
-  const toggle = (id: string) => save.mutate(settings.map((s) => (s.id === id ? { ...s, visible: !s.visible } : s)));
-
-  return (
-    <>
-      <Chart data={data} settings={settings} onHover={setHoverTime} />
-      <Legend
-        data={data}
-        settings={settings}
-        snapshot={lookup(hoverTime)}
-        onToggle={toggle}
-        onOpenSettings={() => setSettingsOpen(true)}
-      />
-    </>
   );
 }

@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS symbols (
     ticker       TEXT PRIMARY KEY,
     name         TEXT,
     exchange     TEXT,
-    last_fetched TEXT
+    last_fetched TEXT,
+    full_history INTEGER NOT NULL DEFAULT 0  -- 1 once all available history has been fetched
 );
 CREATE TABLE IF NOT EXISTS watchlist (
     ticker   TEXT PRIMARY KEY,
@@ -47,7 +48,16 @@ def connect(path: Path | None = None) -> sqlite3.Connection:
     # Each connection still serves one request at a time, so disabling the check is safe.
     conn = sqlite3.connect(path, check_same_thread=False)
     conn.executescript(SCHEMA)
+    _migrate(conn)
     return conn
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    """Add columns introduced after a DB was created (CREATE TABLE IF NOT EXISTS won't)."""
+    columns = {row[1] for row in conn.execute("PRAGMA table_info(symbols)")}
+    if "full_history" not in columns:
+        with conn:
+            conn.execute("ALTER TABLE symbols ADD COLUMN full_history INTEGER NOT NULL DEFAULT 0")
 
 
 def upsert_bars(conn: sqlite3.Connection, ticker: str, bars: pd.DataFrame) -> int:
@@ -114,9 +124,15 @@ def upsert_symbol(conn: sqlite3.Connection, ticker: str, name: str | None = None
 
 def get_symbol(conn: sqlite3.Connection, ticker: str) -> dict | None:
     row = conn.execute(
-        "SELECT ticker, name, exchange, last_fetched FROM symbols WHERE ticker = ?", (ticker,)
+        "SELECT ticker, name, exchange, last_fetched, full_history FROM symbols WHERE ticker = ?", (ticker,)
     ).fetchone()
-    return None if row is None else dict(zip(("ticker", "name", "exchange", "last_fetched"), row))
+    fields = ("ticker", "name", "exchange", "last_fetched", "full_history")
+    return None if row is None else dict(zip(fields, row))
+
+
+def mark_full_history(conn: sqlite3.Connection, ticker: str) -> None:
+    with conn:
+        conn.execute("UPDATE symbols SET full_history = 1 WHERE ticker = ?", (ticker,))
 
 
 def get_watchlist(conn: sqlite3.Connection) -> list[str]:

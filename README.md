@@ -43,7 +43,7 @@ cd frontend && npm run typecheck
 
 | Feature | How |
 |---|---|
-| Symbol search | Click the symbol in the top-left. Search Yahoo by ticker or company name, then use ↑/↓/Enter. An unstored symbol gets 5 years of history fetched automatically. If search can't find a symbol, pressing Enter tries the typed text as-is |
+| Symbol search | Click the symbol in the top-left. Search Yahoo by ticker or company name, then use ↑/↓/Enter. An unstored symbol gets all available daily history fetched automatically (e.g. KO back to 1962). If search can't find a symbol, pressing Enter tries the typed text as-is |
 | Timeframe | **D** / **W** in the top bar. On **D**, weekly indicators draw as step lines. On **W**, only weekly indicators are shown |
 | Indicators | **ƒx Indicators** to toggle each one and set its colour, width, length and Keltner params. Hover a legend row for quick hide (eye) or settings (gear). Settings are global and saved in the DB |
 | Watchlist | **+** adds via search. Drag rows to reorder. Hover a row and click **✕** to remove it. **⟳** force-fetches every symbol. Prices refresh when the app loads |
@@ -68,7 +68,7 @@ cd frontend && npm run typecheck
 The web app covers everything, but the CLI is handy for scripting or bulk loads:
 
 ```bash
-python -m kaching fetch AAPL MSFT NVDA --period 5Y   # or --start 2020-01-01; 5Y, 6M, 2W, 30D
+python -m kaching fetch AAPL MSFT NVDA               # all history (default MAX); or --period 5Y / --start 2020-01-01
 python -m kaching list
 python -m kaching serve [--host 0.0.0.0] [--port 8000] [--reload]
 
@@ -84,6 +84,10 @@ There's one SQLite DB (`KACHING_DB`, default `data/kaching.db`; `/data/kaching.d
 - `symbols(ticker, name, exchange, last_fetched)`: names for the UI and the fetch throttle
 - `watchlist(ticker, position)`
 - `settings(key, value)`: indicator config as JSON
+
+The app fetches **all available history** for a new symbol. Symbols stored with less (e.g. via
+`fetch --period 5Y`) are backfilled once, the next time the app opens them; `symbols.full_history`
+records that it's done.
 
 When you fetch a ticker that's already stored:
 

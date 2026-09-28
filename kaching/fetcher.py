@@ -9,13 +9,16 @@ import yfinance as yf
 
 from kaching import db
 
+EARLIEST_START = date(1900, 1, 1)  # "MAX": yfinance returns everything it has from here on
 HEAL_TOLERANCE = 1e-4  # relative close difference that signals a split/dividend re-adjustment
 _LOOKBACK_RE = re.compile(r"^(\d+)([DWMY])$", re.IGNORECASE)
 
 
 def parse_lookback(value: str, today: date | None = None) -> date:
-    """'5Y', '6M', '2W', '30D' (relative to today) or 'YYYY-MM-DD' -> start date."""
+    """'MAX', '5Y', '6M', '2W', '30D' (relative to today) or 'YYYY-MM-DD' -> start date."""
     today = today or date.today()
+    if value.strip().upper() == "MAX":
+        return EARLIEST_START
     m = _LOOKBACK_RE.match(value.strip())
     if m:
         n, unit = int(m.group(1)), m.group(2).upper()
@@ -25,7 +28,7 @@ def parse_lookback(value: str, today: date | None = None) -> date:
     try:
         return date.fromisoformat(value.strip())
     except ValueError:
-        raise ValueError(f"Invalid lookback {value!r}: use e.g. 5Y, 6M, 2W, 30D or YYYY-MM-DD") from None
+        raise ValueError(f"Invalid lookback {value!r}: use e.g. MAX, 5Y, 6M, 2W, 30D or YYYY-MM-DD") from None
 
 
 def download(ticker: str, start: date, end: date) -> pd.DataFrame:
