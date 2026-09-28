@@ -17,6 +17,12 @@ export function indicatorLabel(s: IndicatorSetting): string {
   return s.kind === "ema" ? `${prefix}EMA ${s.length}` : `${prefix}KC ${s.ema_length} ${s.multiplier} ${s.atr_length}`;
 }
 
+/** Label for one drawn line, e.g. "EMA 21" or "W KC 20 2 10 · Upper". */
+export function seriesLabel(s: IndicatorSetting, key: string): string {
+  const part = key.split(":")[1];
+  return part ? `${indicatorLabel(s)} · ${part[0].toUpperCase()}${part.slice(1)}` : indicatorLabel(s);
+}
+
 const PARAM_FIELDS = ["length", "ema_length", "atr_length", "multiplier"] as const;
 
 /** True when any calculation parameter differs (style/visibility changes don't need a recompute). */

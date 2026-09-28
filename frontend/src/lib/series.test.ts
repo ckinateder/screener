@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ChartData, IndicatorSetting } from "../api/client";
-import { appliesTo, indicatorLabel, makeLegendLookup, paramsChanged, seriesKeys, timeKey, volumeData } from "./series";
+import { appliesTo, indicatorLabel, seriesLabel, makeLegendLookup, paramsChanged, seriesKeys, timeKey, volumeData } from "./series";
 
 const ema: IndicatorSetting = { id: "d_ema_9", kind: "ema", tf: "D", length: 9, color: "#fff000", width: 2, visible: true };
 const kc: IndicatorSetting = {
@@ -23,6 +23,8 @@ describe("series helpers", () => {
   it("labels indicators", () => {
     expect(indicatorLabel(ema)).toBe("EMA 9");
     expect(indicatorLabel(kc)).toBe("W KC 20 2 10");
+    expect(seriesLabel(ema, "d_ema_9")).toBe("EMA 9");
+    expect(seriesLabel(kc, "w_kc:upper")).toBe("W KC 20 2 10 · Upper");
   });
 
   it("detects parameter changes but ignores style changes", () => {
