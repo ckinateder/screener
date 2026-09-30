@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from kaching import db
 from kaching.fetcher import fetch_ticker, parse_lookback
-from kaching.indicators import DEFAULT_CONFIG, build_indicators, to_weekly
+from kaching.indicators import DEFAULT_CONFIG, RENAMED_IDS, build_indicators, build_zones, to_weekly
 
 log = logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ def search_quotes(query: str, max_results: int = 15) -> list[dict]:
 
 class IndicatorSetting(BaseModel):
     id: str
-    kind: Literal["ema", "kc"]
+    kind: Literal["ema", "sma", "kc", "sr"]
     tf: Literal["D", "W"]
     color: str = Field(pattern=r"^#[0-9a-fA-F]{6}$")
     width: int = Field(ge=1, le=4)
@@ -64,10 +64,21 @@ class IndicatorSetting(BaseModel):
     ema_length: int | None = Field(default=None, ge=1, le=500)
     atr_length: int | None = Field(default=None, ge=1, le=500)
     multiplier: float | None = Field(default=None, gt=0, le=10)
+    # Support zones ("sr")
+    pivot: int | None = Field(default=None, ge=1, le=20)
+    tolerance: float | None = Field(default=None, ge=0.1, le=10)
+    lookback_years: int | None = Field(default=None, ge=1, le=30)
+    max_zones: int | None = Field(default=None, ge=1, le=10)
+    min_touches: int | None = Field(default=None, ge=1, le=10)
 
     @model_validator(mode="after")
     def _params_match_kind(self):
-        required = ["length"] if self.kind == "ema" else ["ema_length", "atr_length", "multiplier"]
+        required = {
+            "ema": ["length"],
+            "sma": ["length"],
+            "kc": ["ema_length", "atr_length", "multiplier"],
+            "sr": ["pivot", "tolerance", "lookback_years", "max_zones", "min_touches"],
+        }[self.kind]
         missing = [f for f in required if getattr(self, f) is None]
         if missing:
             raise ValueError(f"{self.id}: missing {', '.join(missing)}")
@@ -90,11 +101,27 @@ def _validate_config(entries: list[IndicatorSetting]) -> list[dict]:
     return [by_id[id_].model_dump(exclude_none=True) for id_ in expected]
 
 
+def _upgrade_config(stored: list[dict]) -> list[dict]:
+    """Bring a saved config up to the current indicator set without losing customisations:
+    replaced indicators become their successors (keeping length/colour/width/visibility), and indicators
+    added since the config was saved get their defaults."""
+    defaults = {e["id"]: e for e in DEFAULT_CONFIG}
+    upgraded = []
+    for entry in stored:
+        new_id = RENAMED_IDS.get(entry.get("id"))
+        if new_id:
+            entry = {**defaults[new_id], **{k: entry[k] for k in ("length", "color", "width", "visible") if k in entry}}
+        upgraded.append(entry)
+    ids = {e.get("id") for e in upgraded}
+    return upgraded + [e for e in DEFAULT_CONFIG if e["id"] not in ids]
+
+
 def load_config(conn: sqlite3.Connection, pane: int = 1) -> list[dict]:
     """Indicator config for a chart pane. An unconfigured pane > 1 starts as a copy of pane 1."""
     stored = db.get_setting(conn, _indicators_key(pane))
     if stored is None:
         return DEFAULT_CONFIG if pane == 1 else load_config(conn, 1)
+    stored = _upgrade_config(stored)
     try:
         return _validate_config([IndicatorSetting(**e) for e in stored])
     except (ValueError, TypeError):
@@ -161,6 +188,11 @@ def _times(index: pd.DatetimeIndex, tf: str) -> list[str]:
     return index.strftime("%Y-%m-%d").tolist()
 
 
+def _day(ts: pd.Timestamp, tf: str) -> str:
+    """One date, labelled the way _times labels bars (weekly -> Monday)."""
+    return _times(pd.DatetimeIndex([ts]), tf)[0]
+
+
 def _series_points(series: pd.Series, tf: str) -> list[dict]:
     series = series.dropna()
     return [{"time": t, "value": round(float(v), 4)} for t, v in zip(_times(series.index, tf), series)]
@@ -218,7 +250,10 @@ def chart(ticker: str, tf: Literal["D", "W"] = "D", refresh: bool = False, pane:
         raise HTTPException(404, f"No data found for {ticker}")
 
     bars = daily if tf == "D" else to_weekly(daily)
-    indicators = build_indicators(daily, load_config(conn, pane), tf)
+    config = load_config(conn, pane)
+    indicators = build_indicators(daily, config, tf)
+    zones = build_zones(daily, config, tf)
+    zone_tf = {c["id"]: c["tf"] for c in config}
     times = _times(bars.index, tf)
     sym = db.get_symbol(conn, ticker) or {}
     payload = {
@@ -232,6 +267,12 @@ def chart(ticker: str, tf: Literal["D", "W"] = "D", refresh: bool = False, pane:
                                         bars["close"], bars["volume"])
         ],
         "indicators": {key: _series_points(s, tf) for key, s in indicators.items()},
+        # Label zone dates by the zone's own timeframe (weekly touches -> their week's Monday), not the
+        # chart's: a weekly zone on the daily chart must start at its week, not the W-FRI label.
+        "zones": {
+            key: [{**z, "first": _day(z["first"], zone_tf[key]), "last": _day(z["last"], zone_tf[key])} for z in zs]
+            for key, zs in zones.items()
+        },
         **status,
     }
     # Already plain JSON types: skip FastAPI's per-object jsonable_encoder, which takes ~0.65s on a

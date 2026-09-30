@@ -5,14 +5,24 @@ import { indicatorLabel } from "../lib/series";
 import { useUi, type PaneIndex } from "../store";
 import { Modal } from "./ui/Modal";
 
-type NumField = "length" | "ema_length" | "atr_length" | "multiplier";
+type NumField =
+  | "length" | "ema_length" | "atr_length" | "multiplier"
+  | "pivot" | "tolerance" | "lookback_years" | "max_zones" | "min_touches";
 
 const FIELDS: Record<IndicatorSetting["kind"], { field: NumField; label: string; step: number; min: number; max: number }[]> = {
   ema: [{ field: "length", label: "Length", step: 1, min: 1, max: 500 }],
+  sma: [{ field: "length", label: "Length", step: 1, min: 1, max: 500 }],
   kc: [
     { field: "ema_length", label: "EMA", step: 1, min: 1, max: 500 },
     { field: "atr_length", label: "ATR", step: 1, min: 1, max: 500 },
     { field: "multiplier", label: "Mult", step: 0.1, min: 0.1, max: 10 },
+  ],
+  sr: [
+    { field: "pivot", label: "Pivot", step: 1, min: 1, max: 20 },
+    { field: "tolerance", label: "Tol %", step: 0.1, min: 0.1, max: 10 },
+    { field: "lookback_years", label: "Years", step: 1, min: 1, max: 30 },
+    { field: "max_zones", label: "Zones", step: 1, min: 1, max: 10 },
+    { field: "min_touches", label: "Min touches", step: 1, min: 1, max: 10 },
   ],
 };
 

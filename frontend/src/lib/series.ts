@@ -4,7 +4,9 @@ export const KC_PARTS = ["upper", "mid", "lower"] as const;
 
 /** API series keys produced by one indicator setting. */
 export function seriesKeys(setting: IndicatorSetting): string[] {
-  return setting.kind === "ema" ? [setting.id] : KC_PARTS.map((p) => `${setting.id}:${p}`);
+  if (setting.kind === "ema" || setting.kind === "sma") return [setting.id];
+  if (setting.kind === "kc") return KC_PARTS.map((p) => `${setting.id}:${p}`);
+  return []; // "sr" support zones are drawn as bands, not line series
 }
 
 /** Daily indicators aren't meaningful on weekly candles, so the W chart only shows weekly ones. */
@@ -13,8 +15,10 @@ export function appliesTo(setting: IndicatorSetting, tf: Tf): boolean {
 }
 
 export function indicatorLabel(s: IndicatorSetting): string {
+  if (s.kind === "sr") return `${s.tf} Support`; // both get a prefix: there's no unprefixed "Support"
   const prefix = s.tf === "W" ? "W " : "";
-  return s.kind === "ema" ? `${prefix}EMA ${s.length}` : `${prefix}KC ${s.ema_length} ${s.multiplier} ${s.atr_length}`;
+  if (s.kind === "ema" || s.kind === "sma") return `${prefix}${s.kind.toUpperCase()} ${s.length}`;
+  return `${prefix}KC ${s.ema_length} ${s.multiplier} ${s.atr_length}`;
 }
 
 /** Label for one drawn line, e.g. "EMA 21" or "W KC 20 2 10 · Upper". */
@@ -23,7 +27,10 @@ export function seriesLabel(s: IndicatorSetting, key: string): string {
   return part ? `${indicatorLabel(s)} · ${part[0].toUpperCase()}${part.slice(1)}` : indicatorLabel(s);
 }
 
-const PARAM_FIELDS = ["length", "ema_length", "atr_length", "multiplier"] as const;
+const PARAM_FIELDS = [
+  "length", "ema_length", "atr_length", "multiplier",
+  "pivot", "tolerance", "lookback_years", "max_zones", "min_touches",
+] as const;
 
 /** True when any calculation parameter differs (style/visibility changes don't need a recompute). */
 export function paramsChanged(a: IndicatorSetting[], b: IndicatorSetting[]): boolean {

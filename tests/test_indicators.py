@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from kaching.indicators import atr, build_indicators, ema, keltner, to_weekly
+from kaching.indicators import atr, build_indicators, ema, keltner, sma, to_weekly
 
 
 def bars(closes, start="2024-01-01"):
@@ -14,6 +14,13 @@ def test_ema_matches_hand_computation():
     s = pd.Series([1.0, 2.0, 3.0])
     # span=3 -> alpha=0.5: 1, 1.5, 2.25
     assert ema(s, 3).tolist() == [1.0, 1.5, 2.25]
+
+
+def test_sma_is_a_plain_rolling_mean():
+    s = pd.Series([1.0, 2.0, 3.0, 4.0])
+    result = sma(s, 3)
+    assert result.isna().tolist() == [True, True, False, False]  # no value until n bars exist
+    assert result.dropna().tolist() == [2.0, 3.0]
 
 
 def test_atr_uses_wilder_smoothing():
@@ -53,7 +60,7 @@ def test_weekly_values_align_to_daily_index():
 def test_weekly_timeframe_has_only_weekly_indicators_on_weekly_index():
     df = bars(list(range(1, 60)))
     ind = build_indicators(df, tf="W")
-    assert set(ind) == {"w_ema_21", "w_ema_50", "w_ema_100", "w_kc:upper", "w_kc:mid", "w_kc:lower"}
+    assert set(ind) == {"w_ema_21", "w_sma_50", "w_sma_100", "w_kc:upper", "w_kc:mid", "w_kc:lower"}
     assert ind["w_ema_21"].index.equals(to_weekly(df).index)
 
 

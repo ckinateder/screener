@@ -3,6 +3,11 @@ import type { ChartData, IndicatorSetting } from "../api/client";
 import { appliesTo, indicatorLabel, seriesLabel, makeLegendLookup, paramsChanged, seriesKeys, timeKey, volumeData } from "./series";
 
 const ema: IndicatorSetting = { id: "d_ema_9", kind: "ema", tf: "D", length: 9, color: "#fff000", width: 2, visible: true };
+const sma: IndicatorSetting = { id: "d_sma_50", kind: "sma", tf: "D", length: 50, color: "#fb923c", width: 2, visible: true };
+const sr: IndicatorSetting = {
+  id: "w_sr", kind: "sr", tf: "W", pivot: 2, tolerance: 2, lookback_years: 3, max_zones: 3, min_touches: 1,
+  color: "#38bdf8", width: 1, visible: true,
+};
 const kc: IndicatorSetting = {
   id: "w_kc", kind: "kc", tf: "W", ema_length: 20, atr_length: 10, multiplier: 2, color: "#000fff", width: 1, visible: true,
 };
@@ -11,6 +16,8 @@ describe("series helpers", () => {
   it("maps settings to API series keys", () => {
     expect(seriesKeys(ema)).toEqual(["d_ema_9"]);
     expect(seriesKeys(kc)).toEqual(["w_kc:upper", "w_kc:mid", "w_kc:lower"]);
+    expect(seriesKeys(sr)).toEqual([]); // zones are drawn as bands
+    expect(seriesKeys(sma)).toEqual(["d_sma_50"]);
   });
 
   it("hides daily indicators on the weekly chart", () => {
@@ -23,6 +30,10 @@ describe("series helpers", () => {
   it("labels indicators", () => {
     expect(indicatorLabel(ema)).toBe("EMA 9");
     expect(indicatorLabel(kc)).toBe("W KC 20 2 10");
+    expect(indicatorLabel(sr)).toBe("W Support");
+    expect(indicatorLabel(sma)).toBe("SMA 50");
+    expect(indicatorLabel({ ...sma, tf: "W" })).toBe("W SMA 50");
+    expect(indicatorLabel({ ...sr, tf: "D" })).toBe("D Support");
     expect(seriesLabel(ema, "d_ema_9")).toBe("EMA 9");
     expect(seriesLabel(kc, "w_kc:upper")).toBe("W KC 20 2 10 · Upper");
   });
@@ -30,6 +41,8 @@ describe("series helpers", () => {
   it("detects parameter changes but ignores style changes", () => {
     expect(paramsChanged([ema, kc], [{ ...ema, color: "#123456", visible: false, width: 4 }, kc])).toBe(false);
     expect(paramsChanged([ema, kc], [ema, { ...kc, multiplier: 1.5 }])).toBe(true);
+    expect(paramsChanged([sr], [{ ...sr, tolerance: 1 }])).toBe(true);
+    expect(paramsChanged([sr], [{ ...sr, color: "#000000", visible: false }])).toBe(false);
   });
 
   it("colours volume by candle direction", () => {
@@ -49,7 +62,7 @@ describe("series helpers", () => {
 
 describe("makeLegendLookup", () => {
   const data: ChartData = {
-    symbol: "AAPL", name: null, exchange: null, tf: "D", healed: false, stale: false,
+    symbol: "AAPL", name: null, exchange: null, tf: "D", healed: false, stale: false, zones: {},
     bars: [
       { time: "2024-01-01", open: 1, high: 2, low: 0, close: 10, volume: 1 },
       { time: "2024-01-02", open: 1, high: 2, low: 0, close: 11, volume: 1 },

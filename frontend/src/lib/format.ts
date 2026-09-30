@@ -28,6 +28,13 @@ export function formatVolume(value: number | null | undefined): string {
   return String(Math.round(value));
 }
 
+/** "2026-04-07" -> "7 Apr '26". */
+export function formatShortDate(iso: string): string {
+  const d = new Date(`${iso}T00:00:00Z`);
+  const month = d.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
+  return `${d.getUTCDate()} ${month} '${String(d.getUTCFullYear()).slice(2)}`;
+}
+
 /** Tailwind text colour class for a signed change. */
 export function changeClass(value: number | null | undefined): string {
   if (!value) return "text-muted";

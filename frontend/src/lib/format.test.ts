@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { changeClass, formatChange, formatPct, formatPrice, formatVolume } from "./format";
+import { changeClass, formatChange, formatPct, formatPrice, formatShortDate, formatVolume } from "./format";
 
 describe("format", () => {
   it("formats prices with extra precision under $1", () => {
@@ -24,6 +24,11 @@ describe("format", () => {
     expect(formatVolume(12_340)).toBe("12.34K");
     expect(formatVolume(45_600_000)).toBe("45.60M");
     expect(formatVolume(2_100_000_000)).toBe("2.10B");
+  });
+
+  it("formats short dates", () => {
+    expect(formatShortDate("2026-04-07")).toBe("7 Apr '26");
+    expect(formatShortDate("1999-12-31")).toBe("31 Dec '99");
   });
 
   it("colours changes", () => {

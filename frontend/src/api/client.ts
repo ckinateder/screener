@@ -27,13 +27,24 @@ export interface ChartData {
   bars: Bar[];
   /** Keyed by indicator id; Keltner parts are "<id>:upper" | ":mid" | ":lower". */
   indicators: Record<string, Point[]>;
+  /** Support zones keyed by "sr" indicator id, nearest below price first. */
+  zones: Record<string, Zone[]>;
   healed: boolean;
   stale: boolean;
 }
 
+export interface Zone {
+  low: number;
+  high: number;
+  touches: number;
+  /** First / last touch (ISO date). */
+  first: string;
+  last: string;
+}
+
 export interface IndicatorSetting {
   id: string;
-  kind: "ema" | "kc";
+  kind: "ema" | "sma" | "kc" | "sr";
   tf: Tf;
   color: string;
   width: number;
@@ -42,6 +53,12 @@ export interface IndicatorSetting {
   ema_length?: number;
   atr_length?: number;
   multiplier?: number;
+  // Support zones ("sr")
+  pivot?: number;
+  tolerance?: number;
+  lookback_years?: number;
+  max_zones?: number;
+  min_touches?: number;
 }
 
 export interface SearchResult {

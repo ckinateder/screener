@@ -7,16 +7,18 @@ import {
   LineStyle,
   LineType,
   type IChartApi,
+  type IPriceLine,
   type ISeriesApi,
   type LineData,
   type LineWidth,
 } from "lightweight-charts";
 import { useEffect, useRef, useState } from "react";
 import type { Bar, ChartData, IndicatorSetting } from "../api/client";
-import { formatPrice } from "../lib/format";
-import { appliesTo, seriesKeys, seriesLabel, timeKey, volumeData } from "../lib/series";
+import { formatPrice, formatShortDate } from "../lib/format";
+import { appliesTo, indicatorLabel, seriesKeys, seriesLabel, timeKey, volumeData } from "../lib/series";
 import { barAtOrBefore, dayNumber, dayToLogical, logicalToDay } from "../lib/sync";
 import { theme } from "../theme";
+import { ZonesPrimitive, type DrawZone } from "./zonesPrimitive";
 
 const INITIAL_BARS = { D: 180, W: 150 } as const; // bars visible when a symbol/timeframe first loads
 const RIGHT_OFFSET = 8; // empty bars right of the latest one, unless the right edge is locked
@@ -73,12 +75,16 @@ interface ChartRefs {
   highlighted: ISeriesApi<"Line"> | null;
   /** In-flight width animations, and each animated line's current (fractional) width. */
   widths: Map<ISeriesApi<"Line">, { current: number; raf: number }>;
+  /** Support-zone bands (drawn behind the candles) and their price-axis labels. */
+  zones: ZonesPrimitive;
+  zoneLabels: IPriceLine[];
 }
 
 interface Tooltip {
   label: string;
   color: string;
-  value: number | undefined;
+  /** Value for a line; range, touches and date for a support zone. */
+  text: string;
   x: number;
   y: number;
   flip: boolean; // near the right edge: render to the left of the cursor
@@ -189,12 +195,15 @@ export function Chart(props: Props) {
       const r = refs.current;
       const info = hovered && r?.lineInfo.get(hovered);
       if (r) highlight(r, info ? hovered! : null);
-      if (!info || !param.point) return setTooltip(null);
-      const point = param.seriesData.get(hovered) as LineData | undefined;
+      if (!param.point) return setTooltip(null);
+      // Lines take precedence; otherwise a support zone under the cursor (price pane only).
+      const zone = !info && param.paneIndex === 0 ? r?.zones.zoneAt(param.point.x, param.point.y) : null;
+      if (!info && !zone) return setTooltip(null);
+      const point = info ? (param.seriesData.get(hovered!) as LineData | undefined) : undefined;
       setTooltip({
-        label: info.label,
-        color: info.color,
-        value: point?.value,
+        label: info ? info.label : zone!.tooltip.label,
+        color: info ? info.color : zone!.color,
+        text: info ? formatPrice(point?.value) : zone!.tooltip.text,
         x: param.point.x,
         y: param.point.y,
         flip: param.point.x > chart.paneSize(0).width - 220,
@@ -214,7 +223,12 @@ export function Chart(props: Props) {
       const range = getRange();
       if (range) callbacks.current.onRangeChange?.(range);
     });
-    refs.current = { chart, candles, volume, lines: new Map(), lineInfo: new Map(), highlighted: null, widths: new Map() };
+    const zones = new ZonesPrimitive();
+    candles.attachPrimitive(zones);
+    refs.current = {
+      chart, candles, volume, lines: new Map(), lineInfo: new Map(), highlighted: null, widths: new Map(),
+      zones, zoneLabels: [],
+    };
 
     const handle: ChartHandle = {
       showCrosshair: (time) => {
@@ -292,6 +306,29 @@ export function Chart(props: Props) {
         r.lineInfo.set(line, { label: seriesLabel(s, key), color: s.color, width: s.width });
       }
     }
+    // Support zones: bands + an axis label per zone ("212.40 ×4").
+    const drawZones: DrawZone[] = [];
+    for (const label of r.zoneLabels) r.candles.removePriceLine(label);
+    r.zoneLabels = [];
+    for (const s of settings) {
+      if (s.kind !== "sr" || !s.visible || !appliesTo(s, data.tf)) continue;
+      for (const z of data.zones?.[s.id] ?? []) {
+        const touches = `${z.touches} touch${z.touches === 1 ? "" : "es"}`;
+        const range = z.low === z.high ? formatPrice(z.low) : `${formatPrice(z.high)}–${formatPrice(z.low)}`;
+        drawZones.push({
+          low: z.low, high: z.high, color: s.color, startDay: dayNumber(z.first),
+          tooltip: { label: indicatorLabel(s), text: `${range} · ${touches} · last ${formatShortDate(z.last)}` },
+        });
+        r.zoneLabels.push(
+          r.candles.createPriceLine({
+            price: (z.low + z.high) / 2, color: s.color, lineVisible: false, axisLabelVisible: true,
+            title: `×${z.touches}`,
+          }),
+        );
+      }
+    }
+    r.zones.setZones(drawZones, bars.current.days);
+
     for (const [key, line] of r.lines) {
       if (!wanted.has(key)) {
         r.chart.removeSeries(line);
@@ -345,7 +382,7 @@ export function Chart(props: Props) {
         >
           <span className="size-2 rounded-full" style={{ background: tooltip.color }} />
           <span>{tooltip.label}</span>
-          <span style={{ color: tooltip.color }}>{formatPrice(tooltip.value)}</span>
+          <span style={{ color: tooltip.color }}>{tooltip.text}</span>
         </div>
       )}
     </div>

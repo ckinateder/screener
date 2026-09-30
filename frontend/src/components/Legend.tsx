@@ -1,4 +1,4 @@
-import type { ChartData, IndicatorSetting } from "../api/client";
+import type { ChartData, IndicatorSetting, Zone } from "../api/client";
 import { changeClass, formatChange, formatPct, formatPrice, formatVolume } from "../lib/format";
 import { appliesTo, indicatorLabel, seriesKeys, type LegendSnapshot } from "../lib/series";
 
@@ -51,6 +51,7 @@ export function Legend({ data, settings, snapshot, onToggle, onOpenSettings }: P
                   {formatPrice(values[key])}
                 </span>
               ))}
+            {s.visible && s.kind === "sr" && <ZoneSummary zones={data.zones?.[s.id] ?? []} color={s.color} />}
             <span className="hidden gap-1 group-hover:flex">
               <IconButton title={s.visible ? "Hide" : "Show"} onClick={() => onToggle(s.id)}>
                 {s.visible ? <EyeIcon /> : <EyeOffIcon />}
@@ -62,6 +63,16 @@ export function Legend({ data, settings, snapshot, onToggle, onOpenSettings }: P
           </div>
         ))}
     </div>
+  );
+}
+
+/** Support zones as "212.40 ×4 · 198.10 ×2" (centre price, touches), nearest first. */
+function ZoneSummary({ zones, color }: { zones: Zone[]; color: string }) {
+  if (zones.length === 0) return <span className="text-muted">none below price</span>;
+  return (
+    <span style={{ color }}>
+      {zones.map((z) => `${formatPrice((z.low + z.high) / 2)} ×${z.touches}`).join(" · ")}
+    </span>
   );
 }
 

@@ -16,6 +16,11 @@ QUOTES = [
 ]
 
 
+def kc(config):
+    """The daily Keltner entry of an indicator config."""
+    return next(e for e in config if e["id"] == "d_kc")
+
+
 class Market(FakeMarket):
     """FakeMarket that knows only real-looking tickers; 'BAD' returns nothing."""
 
@@ -142,9 +147,9 @@ def test_chart_unknown_ticker_404(client):
 def test_settings_default_roundtrip_and_reset(client):
     assert client.get("/api/settings/indicators").json() == DEFAULT_CONFIG
     cfg = [dict(e) for e in DEFAULT_CONFIG]
-    cfg[-2]["multiplier"] = 1.5
+    kc(cfg)["multiplier"] = 1.5
     assert client.put("/api/settings/indicators", json=cfg).status_code == 200
-    assert client.get("/api/settings/indicators").json()[-2]["multiplier"] == 1.5
+    assert kc(client.get("/api/settings/indicators").json())["multiplier"] == 1.5
     assert client.delete("/api/settings/indicators").json() == DEFAULT_CONFIG
     assert client.get("/api/settings/indicators").json() == DEFAULT_CONFIG
 
@@ -152,7 +157,7 @@ def test_settings_default_roundtrip_and_reset(client):
 def test_settings_change_affects_chart(client):
     before = client.get("/api/chart/AAPL").json()["indicators"]["d_kc:upper"][-1]["value"]
     cfg = [dict(e) for e in DEFAULT_CONFIG]
-    cfg[-2]["multiplier"] = 1.0
+    kc(cfg)["multiplier"] = 1.0
     client.put("/api/settings/indicators", json=cfg)
     after = client.get("/api/chart/AAPL").json()["indicators"]["d_kc:upper"][-1]["value"]
     assert after < before
@@ -160,16 +165,16 @@ def test_settings_change_affects_chart(client):
 
 def test_panes_have_independent_settings(client):
     cfg = [dict(e) for e in DEFAULT_CONFIG]
-    cfg[-2]["multiplier"] = 1.0
+    kc(cfg)["multiplier"] = 1.0
     client.put("/api/settings/indicators", json=cfg)  # pane 1
     # An unconfigured pane 2 starts as a copy of pane 1...
-    assert client.get("/api/settings/indicators", params={"pane": 2}).json()[-2]["multiplier"] == 1.0
+    assert kc(client.get("/api/settings/indicators", params={"pane": 2}).json())["multiplier"] == 1.0
     # ...then diverges once saved.
     cfg2 = [dict(e) for e in DEFAULT_CONFIG]
-    cfg2[-2]["multiplier"] = 3.0
+    kc(cfg2)["multiplier"] = 3.0
     client.put("/api/settings/indicators", params={"pane": 2}, json=cfg2)
-    assert client.get("/api/settings/indicators").json()[-2]["multiplier"] == 1.0
-    assert client.get("/api/settings/indicators", params={"pane": 2}).json()[-2]["multiplier"] == 3.0
+    assert kc(client.get("/api/settings/indicators").json())["multiplier"] == 1.0
+    assert kc(client.get("/api/settings/indicators", params={"pane": 2}).json())["multiplier"] == 3.0
 
     upper1 = client.get("/api/chart/AAPL").json()["indicators"]["d_kc:upper"][-1]["value"]
     upper2 = client.get("/api/chart/AAPL", params={"pane": 2}).json()["indicators"]["d_kc:upper"][-1]["value"]
@@ -178,8 +183,74 @@ def test_panes_have_independent_settings(client):
     # Resetting pane 2 gives defaults, not pane 1's config; pane 1 is untouched.
     client.delete("/api/settings/indicators", params={"pane": 2})
     assert client.get("/api/settings/indicators", params={"pane": 2}).json() == DEFAULT_CONFIG
-    assert client.get("/api/settings/indicators").json()[-2]["multiplier"] == 1.0
+    assert kc(client.get("/api/settings/indicators").json())["multiplier"] == 1.0
     assert client.get("/api/settings/indicators", params={"pane": 3}).status_code == 422
+
+
+def test_chart_includes_support_zones(client, market):
+    # Oscillating prices on a rising trend, so there are swing lows below the latest close.
+    import numpy as np
+    n = len(market.bars)
+    close = 100 + np.arange(n) * 0.2 + 8 * np.sin(np.arange(n) / 6)
+    market.bars["close"] = close
+    market.bars["open"], market.bars["high"], market.bars["low"] = close, close + 1, close - 1
+
+    daily = client.get("/api/chart/AAPL", params={"tf": "D"}).json()
+    weekly = client.get("/api/chart/AAPL", params={"tf": "W"}).json()
+    assert set(daily["zones"]) == {"d_sr", "w_sr"}
+    assert set(weekly["zones"]) == {"w_sr"}  # daily support isn't shown on weekly candles
+    zones = daily["zones"]["w_sr"]
+    assert 0 < len(zones) <= 3
+    last_close = daily["bars"][-1]["close"]
+    for z in zones:
+        assert set(z) == {"low", "high", "touches", "first", "last"}
+        assert z["low"] <= z["high"] and (z["low"] + z["high"]) / 2 < last_close
+        assert pd.Timestamp(z["first"]).day_name() == "Monday"  # weekly zones use Monday labels
+
+
+def test_old_saved_config_keeps_customisations_when_indicators_are_added(client):
+    # A config saved before support zones existed: no sr entries, customised Keltner.
+    old = [dict(e) for e in DEFAULT_CONFIG if e["kind"] != "sr"]
+    kc(old)["multiplier"] = 1.25
+    conn = db.connect()
+    db.put_setting(conn, "indicators", old)
+    cfg = client.get("/api/settings/indicators").json()
+    assert kc(cfg)["multiplier"] == 1.25
+    assert {e["id"] for e in cfg} == {e["id"] for e in DEFAULT_CONFIG}
+
+
+def test_saved_ema_50_100_migrate_to_sma_keeping_style(client):
+    # Config saved when the 50/100 lines were EMAs, with a customised (hidden, recoloured) EMA 50.
+    old = [dict(e) for e in DEFAULT_CONFIG if e["kind"] != "sma"]
+    for tf in ("d", "w"):
+        for n in (50, 100):
+            old.append({"id": f"{tf}_ema_{n}", "kind": "ema", "tf": tf.upper(), "length": n,
+                        "color": "#123456", "width": 3, "visible": False})
+    db.put_setting(db.connect(), "indicators", old)
+
+    cfg = {e["id"]: e for e in client.get("/api/settings/indicators").json()}
+    assert "d_ema_50" not in cfg and "w_ema_100" not in cfg
+    migrated = cfg["d_sma_50"]
+    assert (migrated["kind"], migrated["length"]) == ("sma", 50)
+    assert (migrated["color"], migrated["width"], migrated["visible"]) == ("#123456", 3, False)
+
+
+def test_chart_sma_series(client):
+    ind = client.get("/api/chart/AAPL").json()["indicators"]
+    assert {"d_sma_50", "d_sma_100", "w_sma_50", "w_sma_100"} <= set(ind)
+    assert not {"d_ema_50", "d_ema_100"} & set(ind)
+
+
+def test_support_settings_validate_params(client):
+    cfg = [dict(e) for e in DEFAULT_CONFIG]
+    sr = next(e for e in cfg if e["id"] == "w_sr")
+    sr["tolerance"] = 0.5
+    assert client.put("/api/settings/indicators", json=cfg).status_code == 200
+    sr["max_zones"] = 0
+    assert client.put("/api/settings/indicators", json=cfg).status_code == 422
+    sr["max_zones"] = 3
+    del sr["pivot"]
+    assert client.put("/api/settings/indicators", json=cfg).status_code == 422
 
 
 @pytest.mark.parametrize("mutate", [
