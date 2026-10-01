@@ -1,6 +1,6 @@
 import type { ChartData, IndicatorSetting, Zone } from "../api/client";
 import { changeClass, formatChange, formatPct, formatPrice, formatVolume } from "../lib/format";
-import { appliesTo, indicatorLabel, seriesKeys, type LegendSnapshot } from "../lib/series";
+import { appliesTo, indicatorLabel, isPriceOnly, seriesKeys, type LegendSnapshot } from "../lib/series";
 
 interface Props {
   data: ChartData;
@@ -13,7 +13,9 @@ interface Props {
 export function Legend({ data, settings, snapshot, onToggle, onOpenSettings }: Props) {
   const { bar, prevClose, values } = snapshot;
   const change = bar && prevClose != null ? bar.close - prevClose : null;
-  const barClass = bar && bar.close >= bar.open ? "text-up" : "text-down";
+  const priceOnly = isPriceOnly(data.bars);
+  // Price-only bars have open == close, so colour by the change from the previous close instead.
+  const barClass = (priceOnly ? (change ?? 0) >= 0 : bar && bar.close >= bar.open) ? "text-up" : "text-down";
 
   return (
     <div className="pointer-events-none absolute top-2 left-3 z-10 select-none text-[13px] leading-6">
@@ -26,7 +28,8 @@ export function Legend({ data, settings, snapshot, onToggle, onOpenSettings }: P
       </div>
       {bar && (
         <div className="flex flex-wrap gap-x-2">
-          {(["open", "high", "low", "close"] as const).map((f) => (
+          {/* Price-only symbols (funds): O/H/L equal the close and volume is 0, so show just C. */}
+          {(priceOnly ? (["close"] as const) : (["open", "high", "low", "close"] as const)).map((f) => (
             <span key={f}>
               <span className="text-muted">{f[0].toUpperCase()}</span>{" "}
               <span className={barClass}>{formatPrice(bar[f])}</span>
@@ -35,9 +38,11 @@ export function Legend({ data, settings, snapshot, onToggle, onOpenSettings }: P
           <span className={changeClass(change)}>
             {formatChange(change)} ({formatPct(change != null && prevClose ? (change / prevClose) * 100 : null)})
           </span>
-          <span>
-            <span className="text-muted">Vol</span> <span className={barClass}>{formatVolume(bar.volume)}</span>
-          </span>
+          {!priceOnly && (
+            <span>
+              <span className="text-muted">Vol</span> <span className={barClass}>{formatVolume(bar.volume)}</span>
+            </span>
+          )}
         </div>
       )}
       {settings

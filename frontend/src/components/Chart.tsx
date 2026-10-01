@@ -15,13 +15,38 @@ import {
 import { useEffect, useRef, useState } from "react";
 import type { Bar, ChartData, IndicatorSetting } from "../api/client";
 import { formatPrice, formatShortDate } from "../lib/format";
-import { appliesTo, indicatorLabel, seriesKeys, seriesLabel, timeKey, volumeData } from "../lib/series";
+import { appliesTo, indicatorLabel, isPriceOnly, seriesKeys, seriesLabel, timeKey, volumeData } from "../lib/series";
 import { barAtOrBefore, dayNumber, dayToLogical, logicalToDay } from "../lib/sync";
 import { theme } from "../theme";
 import { ZonesPrimitive, type DrawZone } from "./zonesPrimitive";
 
 const INITIAL_BARS = { D: 180, W: 150 } as const; // bars visible when a symbol/timeframe first loads
-const RIGHT_OFFSET = 8; // empty bars right of the latest one, unless the right edge is locked
+const RIGHT_OFFSET = 8;
+
+const CANDLES = {
+  upColor: theme.up,
+  downColor: theme.down,
+  borderUpColor: theme.up,
+  borderDownColor: theme.down,
+  wickUpColor: theme.up,
+  wickDownColor: theme.down,
+  borderVisible: true,
+  wickVisible: true,
+  lastValueVisible: true,
+  priceLineVisible: true,
+};
+// Price-only symbols (mutual fund NAVs): candles have no range, so a close line is drawn instead.
+// The candles stay (transparent) rather than hidden: zone bands, the crosshair and crosshair sync
+// are attached to that series.
+const TRANSPARENT = "rgba(0, 0, 0, 0)";
+const INVISIBLE_CANDLES = {
+  upColor: TRANSPARENT,
+  downColor: TRANSPARENT,
+  borderVisible: false,
+  wickVisible: false,
+  lastValueVisible: false,
+  priceLineVisible: false,
+}; // empty bars right of the latest one, unless the right edge is locked
 const HOVER_EXTRA_WIDTH = 2; // px added to a hovered line
 const HOVER_ANIMATION_MS = 150;
 
@@ -67,6 +92,8 @@ function clampToLatest(chart: IChartApi, barCount: number) {
 interface ChartRefs {
   chart: IChartApi;
   candles: ISeriesApi<"Candlestick">;
+  /** Close line, shown instead of candles for price-only symbols. */
+  closeLine: ISeriesApi<"Line">;
   volume: ISeriesApi<"Histogram">;
   lines: Map<string, ISeriesApi<"Line">>;
   /** Label/colour/base width per line series, for hover. Refreshed whenever settings change. */
@@ -170,14 +197,8 @@ export function Chart(props: Props) {
       rightPriceScale: { borderColor: theme.border },
       timeScale: { borderColor: theme.border, rightOffset: RIGHT_OFFSET },
     });
-    const candles = chart.addSeries(CandlestickSeries, {
-      upColor: theme.up,
-      downColor: theme.down,
-      borderUpColor: theme.up,
-      borderDownColor: theme.down,
-      wickUpColor: theme.up,
-      wickDownColor: theme.down,
-    });
+    const candles = chart.addSeries(CandlestickSeries, CANDLES);
+    const closeLine = chart.addSeries(LineSeries, { color: theme.accent, lineWidth: 2, visible: false });
     const volume = chart.addSeries(
       HistogramSeries,
       { priceFormat: { type: "volume" }, priceLineVisible: false, lastValueVisible: false },
@@ -226,7 +247,7 @@ export function Chart(props: Props) {
     const zones = new ZonesPrimitive();
     candles.attachPrimitive(zones);
     refs.current = {
-      chart, candles, volume, lines: new Map(), lineInfo: new Map(), highlighted: null, widths: new Map(),
+      chart, candles, closeLine, volume, lines: new Map(), lineInfo: new Map(), highlighted: null, widths: new Map(),
       zones, zoneLabels: [],
     };
 
@@ -276,6 +297,13 @@ export function Chart(props: Props) {
     bars.current = { list: data.bars, times, days: times.map(dayNumber) };
     r.candles.setData(data.bars);
     r.volume.setData(volumeData(data.bars, theme.upVolume, theme.downVolume));
+    const priceOnly = isPriceOnly(data.bars);
+    r.candles.applyOptions(priceOnly ? INVISIBLE_CANDLES : CANDLES);
+    r.closeLine.applyOptions({ visible: priceOnly });
+    r.closeLine.setData(priceOnly ? data.bars.map((b) => ({ time: b.time, value: b.close })) : []);
+    // Funds report no volume: collapse that pane rather than show an empty one.
+    r.volume.applyOptions({ visible: !priceOnly });
+    r.chart.panes()[1]?.setStretchFactor(priceOnly ? 0.0001 : 1);
 
     // Widths are reset to their configured values below; drop any hover animation state.
     stopWidthAnimations(r);

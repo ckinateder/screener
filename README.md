@@ -63,6 +63,29 @@ cd frontend && npm run typecheck
 - Indicators are computed in Python over the full stored history, so EMA warm-up is correct. EMA 100 on a weekly chart needs about 2 years of data.
 - Prices are **adjusted** for splits and dividends.
 
+## Chart Checklist
+
+The 11-item Chart Checklist from `strategy-rules.md`, measured in `kaching/analysis/checklist.py`.
+Each check reports its value, its threshold and ✓ / ✗ / – (not applicable). The app shows it under
+the watchlist for the active symbol, with an `X/11` badge per watchlist row; the CLI has `check`.
+
+| # | Check | Pass when |
+|---|---|---|
+| 1 | Weekly trend | last two weekly swing highs and lows rising, close above the last swing low |
+| 2 | Daily in sync | the same higher-high / higher-low test on daily bars also up |
+| 3 | Last 90 days | 63-bar return > 0 and regression slope > 0 |
+| 4 | vs 21 EMA | ≥ 80% of the last 20 closes above it, and above now |
+| 5 | vs 50 SMA | above by ≥ 1 ATR(14) |
+| 6 | Keltner position | 5-day average of (close − mid) / (upper − mid) between 0.5 and 1.25 |
+| 7 | Volume | up-day ÷ down-day volume over 50 days ≥ 1.0 (n/a without volume data, e.g. funds) |
+| 8 | Price in range | last close $25–$300 |
+| 9 | Support layers | ≥ 2 weekly support zones below price |
+| 10 | Not a vertical run | fails only if up > 15% in 20 days **and** in a near-straight line (efficiency ratio ≥ 0.4) |
+| 11 | Average volume | 50-day average ≥ 1M shares (n/a for funds) |
+
+Thresholds are constants at the top of `checklist.py`. The checklist uses the strategy's own
+parameters, so the chart's indicator settings don't affect it.
+
 ## CLI
 
 The web app covers everything, but the CLI is handy for scripting or bulk loads:
@@ -70,6 +93,7 @@ The web app covers everything, but the CLI is handy for scripting or bulk loads:
 ```bash
 python -m kaching fetch AAPL MSFT NVDA               # all history (default MAX); or --period 5Y / --start 2020-01-01
 python -m kaching list
+python -m kaching check NVDA AMD                     # Chart Checklist; or --watchlist
 python -m kaching serve [--host 0.0.0.0] [--port 8000] [--reload]
 
 # in Docker

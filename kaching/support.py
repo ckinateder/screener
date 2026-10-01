@@ -16,6 +16,16 @@ def swing_lows(bars: pd.DataFrame, pivot: int) -> list[tuple[pd.Timestamp, float
     return out
 
 
+def swing_highs(bars: pd.DataFrame, pivot: int) -> list[tuple[pd.Timestamp, float]]:
+    """Mirror of swing_lows: bars higher than the `pivot` bars before and no lower than the `pivot` after."""
+    highs = bars["high"].to_numpy()
+    out = []
+    for i in range(pivot, len(highs) - pivot):
+        if highs[i] > highs[i - pivot:i].max() and highs[i] >= highs[i + 1:i + pivot + 1].max():
+            out.append((bars.index[i], float(highs[i])))
+    return out
+
+
 def support_zones(bars: pd.DataFrame, pivot: int, tolerance_pct: float, lookback_years: int,
                   max_zones: int, min_touches: int) -> list[dict]:
     """Support zones below the latest close, nearest first.

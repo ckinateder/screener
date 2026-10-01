@@ -10,6 +10,7 @@ const keys = {
   chart: (pane: PaneIndex, symbol: string, tf: Tf) => ["chart", pane, symbol, tf] as const,
   paneCharts: (pane: PaneIndex) => ["chart", pane] as const,
   search: (q: string) => ["search", q] as const,
+  checklist: (symbol: string) => ["checklist", symbol] as const,
   settings: (pane: PaneIndex) => ["settings", pane] as const,
   watchlist: ["watchlist"] as const,
 };
@@ -35,6 +36,7 @@ export function useRefreshChart(pane: PaneIndex, symbol: string | null, tf: Tf) 
       // New bars: every cached chart of this symbol (other timeframe / other pane) is stale.
       qc.invalidateQueries({ predicate: (q) => q.queryKey[0] === "chart" && q.queryKey[2] === data.symbol });
       qc.invalidateQueries({ queryKey: keys.watchlist });
+      qc.invalidateQueries({ queryKey: keys.checklist(data.symbol) });
     },
   });
 }
@@ -106,6 +108,17 @@ export function useForceRefreshWatchlist() {
     onSuccess: (rows) => {
       qc.setQueryData(keys.watchlist, rows);
       qc.invalidateQueries({ queryKey: ["chart"] });
+      qc.invalidateQueries({ queryKey: ["checklist"] });
     },
+  });
+}
+
+export function useChecklist(symbol: string | null) {
+  return useQuery({
+    queryKey: keys.checklist(symbol ?? ""),
+    queryFn: () => api.checklist(symbol!),
+    enabled: !!symbol,
+    staleTime: 60_000,
+    retry: false,
   });
 }

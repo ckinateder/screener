@@ -41,6 +41,16 @@ export function paramsChanged(a: IndicatorSetting[], b: IndicatorSetting[]): boo
   });
 }
 
+/**
+ * True for price-only symbols (mutual funds report one NAV a day: open = high = low = close),
+ * which draw as nothing with candles. Judged on recent bars, allowing a few stray ones.
+ */
+export function isPriceOnly(bars: Bar[], sample = 100): boolean {
+  const recent = bars.slice(-sample);
+  if (recent.length === 0) return false;
+  return recent.filter((b) => b.high === b.low).length / recent.length >= 0.95;
+}
+
 export function volumeData(bars: Bar[], upColor: string, downColor: string) {
   return bars.map((b) => ({ time: b.time, value: b.volume, color: b.close >= b.open ? upColor : downColor }));
 }

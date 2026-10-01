@@ -15,6 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, model_validator
 
 from kaching import db
+from kaching.analysis.checklist import run_checklist
 from kaching.fetcher import fetch_ticker, parse_lookback
 from kaching.indicators import DEFAULT_CONFIG, RENAMED_IDS, build_indicators, build_zones, to_weekly
 
@@ -22,7 +23,7 @@ log = logging.getLogger(__name__)
 
 DEFAULT_LOOKBACK = "MAX"
 FETCH_THROTTLE = timedelta(minutes=5)
-SEARCH_TYPES = {"EQUITY", "ETF", "INDEX"}
+SEARCH_TYPES = {"EQUITY", "ETF", "INDEX", "MUTUALFUND"}
 INDICATORS_KEY = "indicators"  # chart pane 1; pane N > 1 uses "indicators:N"
 
 Pane = Annotated[int, Query(ge=1, le=2)]  # Literal[1, 2] rejects query strings like "2"
@@ -211,8 +212,18 @@ def _watchlist_rows(conn: sqlite3.Connection) -> list[dict]:
             "last": last,
             "change": change,
             "change_pct": change / closes[1] * 100 if change is not None and closes[1] else None,
+            "checklist": _checklist_score(conn, ticker),
         })
     return rows
+
+
+def _checklist_score(conn: sqlite3.Connection, ticker: str) -> dict | None:
+    """Watchlist badge: how many Chart Checklist items pass, from stored bars (no fetch)."""
+    daily = db.load_bars(conn, ticker)
+    if daily.empty:
+        return None
+    result = run_checklist(daily)
+    return {k: result[k] for k in ("passed", "applicable", "all_pass")}
 
 
 # ---------------------------------------------------------------- routes
@@ -278,6 +289,17 @@ def chart(ticker: str, tf: Literal["D", "W"] = "D", refresh: bool = False, pane:
     # Already plain JSON types: skip FastAPI's per-object jsonable_encoder, which takes ~0.65s on a
     # full-history chart (~225k points) vs ~0.1s for json.dumps. allow_nan=False matches FastAPI.
     return Response(json.dumps(payload, allow_nan=False), media_type="application/json")
+
+
+@app.get("/api/checklist/{ticker}")
+def checklist(ticker: str, conn: sqlite3.Connection = Depends(get_conn)):
+    """The Chart Checklist (strategy-rules.md) for a ticker, on fresh data."""
+    ticker = ticker.upper()
+    ensure_data(conn, ticker)
+    daily = db.load_bars(conn, ticker)
+    if daily.empty:
+        raise HTTPException(404, f"No data found for {ticker}")
+    return {"symbol": ticker, **run_checklist(daily)}
 
 
 @app.get("/api/settings/indicators")

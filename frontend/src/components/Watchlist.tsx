@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForceRefreshWatchlist, useSetWatchlist, useWatchlist } from "../api/hooks";
 import { changeClass, formatChange, formatPct, formatPrice } from "../lib/format";
 import { useActivePane, useUi } from "../store";
+import { ChecklistBadge, ChecklistPanel } from "./ChecklistPanel";
 import { RefreshIcon, Spinner } from "./ui/Spinner";
 
 export function Watchlist() {
@@ -29,7 +30,7 @@ export function Watchlist() {
   };
 
   return (
-    <aside className="flex w-72 shrink-0 flex-col border-l-4 border-border bg-bg">
+    <aside className="flex w-80 shrink-0 flex-col border-l-4 border-border bg-bg">
       <div className="flex h-10 items-center gap-1 border-b border-border px-3">
         <h2 className="flex-1 font-medium">Watchlist</h2>
         {busy && <Spinner size={12} />}
@@ -49,7 +50,7 @@ export function Watchlist() {
         </button>
       </div>
 
-      <div className="grid grid-cols-[1fr_4.5rem_4rem_4.5rem] gap-x-1 px-3 py-1 text-xs text-muted">
+      <div className="grid grid-cols-[1fr_4rem_3.5rem_4.25rem] gap-x-1 px-3 py-1 text-xs text-muted">
         <span>Symbol</span>
         <span className="text-right">Last</span>
         <span className="text-right">Chg</span>
@@ -77,12 +78,15 @@ export function Watchlist() {
             onDrop={() => drop(i)}
             onClick={() => setSymbol(r.symbol)}
             title={r.name ?? undefined}
-            className={`group relative grid cursor-pointer grid-cols-[1fr_4.5rem_4rem_4.5rem] items-center gap-x-1 px-3 py-1.5 tabular-nums
+            className={`group relative grid cursor-pointer grid-cols-[1fr_4rem_3.5rem_4.25rem] items-center gap-x-1 px-3 py-1.5 tabular-nums
               ${r.symbol === activeSymbol ? "bg-accent/15" : "hover:bg-hover"}
               ${dragOver === i && dragFrom !== i ? "border-t-2 border-accent" : "border-t-2 border-transparent"}
               ${dragFrom === i ? "opacity-40" : ""}`}
           >
-            <span className="truncate font-medium">{r.symbol}</span>
+            <span className="flex min-w-0 items-center gap-1.5">
+              <span className="truncate font-medium">{r.symbol}</span>
+              {r.checklist && <ChecklistBadge score={r.checklist} className="shrink-0" />}
+            </span>
             <span className="text-right">{formatPrice(r.last)}</span>
             <span className={`text-right ${changeClass(r.change)}`}>{formatChange(r.change)}</span>
             <span className={`text-right ${changeClass(r.change)}`}>{formatPct(r.change_pct)}</span>
@@ -104,6 +108,7 @@ export function Watchlist() {
           </li>
         )}
       </ul>
+      <ChecklistPanel />
     </aside>
   );
 }

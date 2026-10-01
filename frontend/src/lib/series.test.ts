@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ChartData, IndicatorSetting } from "../api/client";
-import { appliesTo, indicatorLabel, seriesLabel, makeLegendLookup, paramsChanged, seriesKeys, timeKey, volumeData } from "./series";
+import { appliesTo, indicatorLabel, isPriceOnly, seriesLabel, makeLegendLookup, paramsChanged, seriesKeys, timeKey, volumeData } from "./series";
 
 const ema: IndicatorSetting = { id: "d_ema_9", kind: "ema", tf: "D", length: 9, color: "#fff000", width: 2, visible: true };
 const sma: IndicatorSetting = { id: "d_sma_50", kind: "sma", tf: "D", length: 50, color: "#fb923c", width: 2, visible: true };
@@ -43,6 +43,16 @@ describe("series helpers", () => {
     expect(paramsChanged([ema, kc], [ema, { ...kc, multiplier: 1.5 }])).toBe(true);
     expect(paramsChanged([sr], [{ ...sr, tolerance: 1 }])).toBe(true);
     expect(paramsChanged([sr], [{ ...sr, color: "#000000", visible: false }])).toBe(false);
+  });
+
+  it("detects price-only (NAV) symbols", () => {
+    const nav = (close: number) => ({ time: "2024-01-01", open: close, high: close, low: close, close, volume: 0 });
+    const candle = { time: "2024-01-01", open: 1, high: 2, low: 0.5, close: 1.5, volume: 10 };
+    expect(isPriceOnly(Array.from({ length: 50 }, (_, i) => nav(10 + i)))).toBe(true);
+    expect(isPriceOnly(Array.from({ length: 50 }, () => candle))).toBe(false);
+    // a few stray ranged bars in a fund's history don't flip it
+    expect(isPriceOnly([...Array.from({ length: 98 }, () => nav(10)), candle, candle])).toBe(true);
+    expect(isPriceOnly([])).toBe(false);
   });
 
   it("colours volume by candle direction", () => {

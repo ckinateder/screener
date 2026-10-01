@@ -13,6 +13,8 @@ QUOTES = [
     {"symbol": "NVDA", "longname": "NVIDIA Corporation", "exchDisp": "NASDAQ", "quoteType": "EQUITY", "typeDisp": "Equity"},
     {"symbol": "NVDA=F", "shortname": "NVIDIA future", "exchDisp": "CME", "quoteType": "FUTURE", "typeDisp": "Futures"},
     {"symbol": "NVDX", "shortname": "2X Long NVIDIA", "exchDisp": "BATS", "quoteType": "ETF", "typeDisp": "ETF"},
+    {"symbol": "FCNTX", "longname": "Fidelity Contrafund", "exchDisp": "Nasdaq", "quoteType": "MUTUALFUND",
+     "typeDisp": "Mutual Fund"},
 ]
 
 
@@ -58,7 +60,8 @@ def test_connection_usable_across_threads(tmp_path, monkeypatch):
 def test_search_filters_types_and_flags_stored(client):
     client.get("/api/chart/NVDA")
     results = client.get("/api/search", params={"q": "nvid"}).json()
-    assert [r["symbol"] for r in results] == ["NVDA", "NVDX"]
+    assert [r["symbol"] for r in results] == ["NVDA", "NVDX", "FCNTX"]  # futures excluded, funds kept
+    assert results[2]["type"] == "Mutual Fund"
     assert results[0] == {"symbol": "NVDA", "name": "NVIDIA Corporation", "exchange": "NASDAQ",
                           "type": "Equity", "stored": True}
     assert results[1]["stored"] is False
@@ -136,6 +139,20 @@ def test_migrates_old_symbols_table(tmp_path):
 def test_large_responses_are_gzipped(client):
     res = client.get("/api/chart/AAPL", headers={"Accept-Encoding": "gzip"})
     assert res.headers["content-encoding"] == "gzip"
+
+
+def test_checklist_endpoint(client):
+    body = client.get("/api/checklist/aapl").json()
+    assert body["symbol"] == "AAPL" and len(body["checks"]) == 11
+    assert body["applicable"] <= 11 and body["as_of"]
+    assert client.get("/api/checklist/BAD").status_code == 404
+
+
+def test_watchlist_rows_include_checklist_score(client):
+    rows = client.put("/api/watchlist", json={"symbols": ["AAPL"]}).json()
+    score = rows[0]["checklist"]
+    assert set(score) == {"passed", "applicable", "all_pass"}
+    assert 0 <= score["passed"] <= score["applicable"] <= 11
 
 
 def test_chart_unknown_ticker_404(client):

@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from kaching.support import support_zones, swing_lows
+from kaching.support import support_zones, swing_highs, swing_lows
 
 
 def bars_from_lows(lows, close=None, start="2024-01-01"):
@@ -21,6 +21,12 @@ DOUBLE_BOTTOM = [100, 97, 94, 90, 94, 98, 101, 98, 94, 90.5, 95, 100, 105, 110, 
 def test_swing_lows_finds_both_bottoms():
     lows = swing_lows(bars_from_lows(DOUBLE_BOTTOM), pivot=2)
     assert [price for _, price in lows] == [90, 90.5]
+
+
+def test_swing_highs_mirror_swing_lows():
+    # highs sit 1 above lows in bars_from_lows: the peak at 101 (low) -> high 102
+    highs = swing_highs(bars_from_lows(DOUBLE_BOTTOM), pivot=2)
+    assert [price for _, price in highs] == [102]
 
 
 def test_swing_lows_ignores_unconfirmed_recent_bars():

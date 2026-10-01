@@ -69,12 +69,36 @@ export interface SearchResult {
   stored: boolean;
 }
 
+export interface ChecklistScore {
+  passed: number;
+  /** Checks that could be evaluated (e.g. volume is n/a for mutual funds). */
+  applicable: number;
+  all_pass: boolean;
+}
+
+export interface ChecklistItem {
+  id: string;
+  label: string;
+  value: string;
+  threshold: string;
+  /** null = not applicable (too little history, no volume data). */
+  passed: boolean | null;
+}
+
+/** The Chart Checklist from strategy-rules.md, measured (kaching/analysis/checklist.py). */
+export interface Checklist extends ChecklistScore {
+  symbol: string;
+  as_of: string | null;
+  checks: ChecklistItem[];
+}
+
 export interface WatchlistRow {
   symbol: string;
   name: string | null;
   last: number | null;
   change: number | null;
   change_pct: number | null;
+  checklist: ChecklistScore | null;
 }
 
 export class ApiError extends Error {
@@ -125,4 +149,5 @@ export const api = {
   refreshWatchlist: (force = false) =>
     request<WatchlistRow[]>(`/api/watchlist/refresh${force ? "?force=true" : ""}`, { method: "POST" }),
   setWatchlist: (symbols: string[]) => request<WatchlistRow[]>("/api/watchlist", json("PUT", { symbols })),
+  checklist: (symbol: string) => request<Checklist>(`/api/checklist/${encodeURIComponent(symbol)}`),
 };

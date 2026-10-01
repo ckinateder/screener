@@ -3,6 +3,7 @@ import argparse
 import sys
 
 from kaching import db
+from kaching.analysis.checklist import run_checklist
 from kaching.fetcher import fetch_ticker, parse_lookback
 
 
@@ -31,6 +32,31 @@ def cmd_serve(args) -> int:
     return 0
 
 
+def cmd_check(args) -> int:
+    conn = db.connect()
+    tickers = db.get_watchlist(conn) if args.watchlist else [t.upper() for t in args.tickers]
+    if not tickers:
+        print("No tickers given (and the watchlist is empty)", file=sys.stderr)
+        return 1
+    marks = {True: "✓", False: "✗", None: "–"}
+    for ticker in tickers:
+        stored = db.date_range(conn, ticker)
+        try:  # bring data up to date first (all history if new)
+            fetch_ticker(conn, ticker, stored[0].date() if stored else parse_lookback("MAX"))
+        except Exception as exc:  # yfinance raises a variety of network/parse errors
+            print(f"{ticker}: fetch failed ({exc}); using stored data", file=sys.stderr)
+        daily = db.load_bars(conn, ticker)
+        if daily.empty:
+            print(f"\n{ticker}: no data")
+            continue
+        result = run_checklist(daily)
+        verdict = "PASS" if result["all_pass"] else "—"
+        print(f"\n{ticker}  {result['passed']}/{result['applicable']}  {verdict}  (as of {result['as_of']})")
+        for c in result["checks"]:
+            print(f"  {marks[c['passed']]} {c['label']:<32} {c['value']:<44} [{c['threshold']}]")
+    return 0
+
+
 def cmd_list(_args) -> int:
     rows = db.list_tickers(db.connect())
     if not rows:
@@ -51,6 +77,11 @@ def main(argv=None) -> int:
                       help="lookback: MAX (all available history, default) or e.g. 5Y, 6M, 2W, 30D")
     when.add_argument("--start", help="start date YYYY-MM-DD")
     p_fetch.set_defaults(func=cmd_fetch)
+
+    p_check = sub.add_parser("check", help="run the Chart Checklist (strategy-rules.md) on tickers")
+    p_check.add_argument("tickers", nargs="*")
+    p_check.add_argument("--watchlist", action="store_true", help="check every watchlist ticker")
+    p_check.set_defaults(func=cmd_check)
 
     p_list = sub.add_parser("list", help="list stored tickers and date ranges")
     p_list.set_defaults(func=cmd_list)
