@@ -31,14 +31,14 @@ The 60-second chart check. Once charts are set up, evaluating a stock takes abou
 | 11 | Average volume     | 50-day average daily volume                                                       | ≥ 1M shares; n/a for funds                      |
 | 12 | Weekly expirations | option expiration dates in the next 4 weeks (Yahoo, refreshed daily)              | an expiration in each of the next 4 weeks       |
 | 13 | Earnings window    | next earnings date (Yahoo, refreshed daily)                                       | more than 8 weeks (56 days) away                |
+| 14 | Sector ETF         | the sector ETF's checks 1–3 (ETF suggested from Yahoo industry/sector, or your override); RS vs SPY shown | the ETF passes all three trend checks |
 
 ### Full Qualifying Checklist
 
-The quick qualification checklist. Before opening any chart, every box needs a check before a stock makes the list for the week. About 60 seconds. (Price range, support layers, vertical run and average volume moved to the Chart Checklist as #8–#11; weekly expirations and earnings as #12–#13.)
+The quick qualification checklist. Before opening any chart, every box needs a check before a stock makes the list for the week. About 60 seconds. (Price range, support layers, vertical run and average volume moved to the Chart Checklist as #8–#11; weekly expirations and earnings as #12–#13; sector ETF as #14.)
 
 | # | What to Check | Green Light |
 | --- | --- | --- |
 | 1 | Options chain liquidity | Bid/ask 10–20 cents or less, strong open interest |
-| 2 | Sector ETF trending same direction | Money flowing in — confirmed on sector ETF chart |
-| 3 | ATM premium justifies the trade | Friday put pays enough for the margin and risk |
+| 2 | ATM premium justifies the trade | Friday put pays enough for the margin and risk |
 

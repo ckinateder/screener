@@ -32,6 +32,8 @@ VERTICAL_BARS, VERTICAL_MIN_GAIN, VERTICAL_MIN_ER = 20, 0.15, 0.4
 AVG_VOL_WINDOW, AVG_VOL_MIN = 50, 1_000_000               # 11.
 WEEKLY_OPTION_WEEKS = 4                                   # 12. an expiration in each of the next 4 weeks
 EARNINGS_WINDOW_DAYS = 56                                 # 13. earnings must be > 8 weeks away
+SECTOR_TREND_CHECKS = ("weekly_trend", "daily_sync", "recent_90d")  # 14. the ETF must pass these
+RS_BARS = 63                                                       # 14. relative strength vs SPY, ~3 months
 TRADING_DAYS_PER_MONTH = 21
 
 
@@ -135,10 +137,29 @@ def _earnings_check(earnings: str | None, today: date) -> dict:
     return _check("earnings", label, f"{when:%b %-d} (in {days} days)", rule, days > EARNINGS_WINDOW_DAYS)
 
 
-def run_checklist(daily: pd.DataFrame, info: dict | None = None, today: date | None = None) -> dict:
-    """Run all 13 checks on daily bars (oldest first). See the module docstring for the result shape.
+def _sector_check(sector: dict | None) -> dict:
+    """#14: the sector ETF passes the trend checks (#1-#3); relative strength vs SPY shown for info."""
+    label, rule = "Sector ETF trending same direction", "sector ETF passes checks 1–3 (trend)"
+    if sector is None:
+        return _check("sector_etf", label, "no sector ETF", rule, None)
+    etf_checks = {c["id"]: c["passed"] for c in run_checklist(sector["bars"])["checks"]}
+    results = [etf_checks[c] for c in SECTOR_TREND_CHECKS]
+    marks = "".join({True: "✓", False: "✗", None: "–"}[r] for r in results)
+    value = f"{sector['etf']} ({sector['source']}) · trend {marks}"
+    etf_close, spy_close = sector["bars"]["close"], sector["spy_bars"]["close"]
+    if len(etf_close) > RS_BARS and len(spy_close) > RS_BARS:
+        rs = (etf_close.iloc[-1] / etf_close.iloc[-(RS_BARS + 1)]) - (spy_close.iloc[-1] / spy_close.iloc[-(RS_BARS + 1)])
+        value += f" · {rs:+.1%} vs SPY (3 mo)"
+    passed = None if None in results else all(results)
+    return _check("sector_etf", label, value, rule, passed)
+
+
+def run_checklist(daily: pd.DataFrame, info: dict | None = None, today: date | None = None,
+                  sector: dict | None = None) -> dict:
+    """Run all 14 checks on daily bars (oldest first). See the module docstring for the result shape.
 
     `info` is market data from kaching.market_info ({expirations, earnings}); without it, #12/#13 are n/a.
+    `sector` is {etf, source, bars, spy_bars} for the stock's sector ETF; without it, #14 is n/a.
     """
     today = today or date.today()
     if len(daily) > 0:
@@ -278,6 +299,9 @@ def run_checklist(daily: pd.DataFrame, info: dict | None = None, today: date | N
     else:
         checks.append(_weekly_options_check(info["expirations"], today))
         checks.append(_earnings_check(info["earnings"], today))
+
+    # 14. Sector ETF trending the same direction
+    checks.append(_sector_check(sector))
 
     applicable = [c for c in checks if c["passed"] is not None]
     passed = sum(c["passed"] for c in applicable)

@@ -91,10 +91,11 @@ def test_trend_needs_two_swings():
 # ------------------------------------------------------------------ full checklist
 
 def test_clean_uptrend_passes_everything():
-    result = run_checklist(uptrend_then_climb(), info(), today=TODAY)  # weeklies, earnings 75 days out
+    # weeklies, earnings 75 days out, sector ETF in an uptrend
+    result = run_checklist(uptrend_then_climb(), info(), today=TODAY, sector=sector(uptrend_then_climb()))
     failing = [(c["id"], c["value"]) for c in result["checks"] if c["passed"] is not True]
     assert failing == []
-    assert (result["passed"], result["applicable"], result["all_pass"]) == (13, 13, True)
+    assert (result["passed"], result["applicable"], result["all_pass"]) == (14, 14, True)
 
 
 def test_downtrend_fails_trend_and_ma_checks():
@@ -133,7 +134,7 @@ def test_result_shape():
     assert result["as_of"] == uptrend_then_climb().index[-1].strftime("%Y-%m-%d")
     assert [c["id"] for c in result["checks"]] == [
         "weekly_trend", "daily_sync", "recent_90d", "ema21", "sma50", "keltner", "volume",
-        "price_range", "support_layers", "not_vertical", "avg_volume", "weekly_options", "earnings"]
+        "price_range", "support_layers", "not_vertical", "avg_volume", "weekly_options", "earnings", "sector_etf"]
     for c in result["checks"]:
         assert set(c) == {"id", "label", "value", "threshold", "passed"}
         assert c["value"] and c["threshold"]
@@ -266,3 +267,42 @@ def test_missing_or_past_earnings_date_is_not_applicable():
 def test_no_market_info_makes_both_checks_not_applicable():
     checks = market_checks(None)
     assert checks["weekly_options"]["passed"] is None and checks["earnings"]["passed"] is None
+
+
+# ------------------------------------------------------------------ sector ETF (#14)
+
+def sector(etf_bars, spy_bars=None, etf="SMH", source="industry"):
+    return {"etf": etf, "source": source, "bars": etf_bars,
+            "spy_bars": uptrend_then_climb() if spy_bars is None else spy_bars}
+
+
+def sector_check(sector_input):
+    return by_id(run_checklist(uptrend_then_climb(), info(), today=TODAY, sector=sector_input))["sector_etf"]
+
+
+def test_sector_etf_in_uptrend_passes():
+    check = sector_check(sector(uptrend_then_climb()))
+    assert check["passed"] is True
+    assert check["value"].startswith("SMH (industry) · trend ✓✓✓")
+
+
+def test_sector_etf_in_downtrend_fails():
+    down = daily_bars(uptrend_then_climb()["close"].to_numpy()[::-1])
+    assert sector_check(sector(down))["passed"] is False
+
+
+def test_sector_etf_with_short_history_is_not_applicable():
+    assert sector_check(sector(daily_bars(wavy_trend(40, drift=0.002))))["passed"] is None
+
+
+def test_no_sector_etf_is_not_applicable():
+    assert sector_check(None)["passed"] is None
+
+
+def test_relative_strength_vs_spy_is_shown():
+    etf = uptrend_then_climb()
+    flat_spy = daily_bars(np.full(len(etf), 100.0))
+    etf_ret = etf["close"].iloc[-1] / etf["close"].iloc[-64] - 1
+    check = sector_check(sector(etf, spy_bars=flat_spy))
+    assert f"{etf_ret:+.1%} vs SPY (3 mo)" in check["value"]
+

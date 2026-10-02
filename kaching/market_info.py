@@ -29,22 +29,30 @@ def fetch_market_info(ticker: str) -> dict:
         pass  # no fundamentals (funds, ETFs) -> unknown
     finally:
         yf_log.setLevel(level)
-    return {"expirations": expirations, "earnings": earnings}
+    try:  # classification, for the sector ETF suggestion (Chart Checklist #14)
+        meta = t.info or {}
+    except Exception:
+        meta = {}
+    return {"expirations": expirations, "earnings": earnings, "sector": meta.get("sector"),
+            "industry": meta.get("industry"), "quote_type": meta.get("quoteType") or "UNKNOWN"}
 
 
 def get_market_info(conn: sqlite3.Connection, ticker: str, force: bool = False,
                     now: datetime | None = None) -> dict | None:
-    """{expirations, earnings, fetched_at}; refetched when older than CACHE_TTL or forced.
+    """{expirations, earnings, sector, industry, quote_type, fetched_at}; refetched after CACHE_TTL or forced.
 
     If Yahoo fails, serves whatever is cached (even stale); None when nothing is cached.
     """
     now = now or datetime.now(timezone.utc)
     cached = db.get_market_info(conn, ticker)
-    if cached and not force and now - datetime.fromisoformat(cached["fetched_at"]) < CACHE_TTL:
+    # quote_type is NULL only in rows cached before classification was added: refetch those once.
+    if (cached and not force and cached.get("quote_type") is not None
+            and now - datetime.fromisoformat(cached["fetched_at"]) < CACHE_TTL):
         return cached
     try:
         fresh = fetch_market_info(ticker)
     except Exception:
         return cached
-    db.put_market_info(conn, ticker, fresh["expirations"], fresh["earnings"], now.isoformat())
-    return {**fresh, "fetched_at": now.isoformat()}
+    fresh = {**fresh, "fetched_at": now.isoformat()}
+    db.put_market_info(conn, ticker, fresh)
+    return fresh

@@ -19,7 +19,8 @@ def fetches(monkeypatch):
 
     def fake(ticker):
         calls.append(ticker)
-        return {"expirations": ["2026-10-02", "2026-10-09"], "earnings": "2026-11-17"}
+        return {"expirations": ["2026-10-02", "2026-10-09"], "earnings": "2026-11-17",
+                "sector": "Technology", "industry": "Semiconductors", "quote_type": "EQUITY"}
 
     monkeypatch.setattr(market_info, "fetch_market_info", fake)
     return calls
@@ -60,6 +61,39 @@ def test_fetch_error_without_cache_is_none(conn, monkeypatch):
 
 
 def test_fund_without_options_or_earnings(conn, monkeypatch):
-    monkeypatch.setattr(market_info, "fetch_market_info", lambda t: {"expirations": [], "earnings": None})
+    monkeypatch.setattr(market_info, "fetch_market_info", lambda t: {
+        "expirations": [], "earnings": None, "sector": None, "industry": None, "quote_type": "MUTUALFUND"})
     result = market_info.get_market_info(conn, "FCNTX", now=NOW)
     assert result["expirations"] == [] and result["earnings"] is None
+
+
+def test_classification_is_cached_with_the_rest(conn, fetches):
+    market_info.get_market_info(conn, "NVDA", now=NOW)
+    cached = market_info.get_market_info(conn, "NVDA", now=NOW + timedelta(hours=1))
+    assert (cached["sector"], cached["industry"], cached["quote_type"]) == ("Technology", "Semiconductors", "EQUITY")
+    assert fetches == ["NVDA"]
+
+
+def test_migration_adds_new_columns_to_existing_tables(tmp_path):
+    import sqlite3
+    path = tmp_path / "old.db"
+    old = sqlite3.connect(path)
+    old.execute("CREATE TABLE market_info (ticker TEXT PRIMARY KEY, expirations TEXT NOT NULL, "
+                "earnings TEXT, fetched_at TEXT NOT NULL)")
+    old.execute("INSERT INTO market_info VALUES ('NVDA', '[]', NULL, '2026-10-01T00:00:00+00:00')")
+    old.execute("CREATE TABLE symbols (ticker TEXT PRIMARY KEY, name TEXT, exchange TEXT, last_fetched TEXT)")
+    old.commit()
+    old.close()
+    conn = db.connect(path)
+    assert db.get_market_info(conn, "NVDA")["sector"] is None
+    db.set_sector_etf(conn, "IREN", "WGMI")
+    assert db.get_sector_etf(conn, "IREN") == "WGMI"
+    db.set_sector_etf(conn, "IREN", None)
+    assert db.get_sector_etf(conn, "IREN") is None
+
+
+def test_rows_cached_before_classification_existed_are_refetched(conn, fetches):
+    # Cached earlier today by an older version: no sector/industry/quote_type columns filled.
+    db.put_market_info(conn, "NVDA", {"expirations": [], "earnings": None, "fetched_at": NOW.isoformat()})
+    refreshed = market_info.get_market_info(conn, "NVDA", now=NOW + timedelta(hours=1))
+    assert fetches == ["NVDA"] and refreshed["industry"] == "Semiconductors"

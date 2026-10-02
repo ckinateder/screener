@@ -1,5 +1,6 @@
-import type { ChecklistScore } from "../api/client";
-import { useChecklist } from "../api/hooks";
+import { useState } from "react";
+import type { ChecklistScore, SectorEtf } from "../api/client";
+import { useChecklist, useSetSectorEtf } from "../api/hooks";
 import { formatShortDate } from "../lib/format";
 import { useActivePane } from "../store";
 import { StrategyRulesPopover } from "./StrategyRulesPopover";
@@ -48,7 +49,12 @@ export function ChecklistPanel() {
                     {/* numbered to match the Chart Checklist in strategy-rules.md */}
                     <span className="text-muted">{i + 1}.</span> {c.label}
                   </div>
-                  <div className="truncate text-xs text-muted">{c.value}</div>
+                  <div className="truncate text-xs text-muted" title={c.value}>
+                    {c.value}
+                  </div>
+                  {c.id === "sector_etf" && data.sector_etf && symbol && (
+                    <SectorEtfEditor key={symbol} symbol={symbol} current={data.sector_etf} />
+                  )}
                 </div>
               </li>
             );
@@ -57,5 +63,50 @@ export function ChecklistPanel() {
         </ul>
       )}
     </section>
+  );
+}
+
+/** Row #14: change the sector ETF used for this symbol, or go back to the suggestion. */
+function SectorEtfEditor({ symbol, current }: { symbol: string; current: SectorEtf }) {
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(current.etf);
+  const save = useSetSectorEtf(symbol);
+
+  const submit = (etf: string | null) => save.mutate(etf, { onSuccess: () => setEditing(false) });
+  const link = "text-[11px] text-accent hover:underline disabled:opacity-50";
+
+  if (!editing) {
+    return (
+      <div className="flex gap-3">
+        <button className={link} onClick={() => { setText(current.etf); setEditing(true); }}>
+          ✎ change ETF
+        </button>
+        {current.source === "override" && current.suggested && (
+          <button className={link} onClick={() => submit(null)} disabled={save.isPending}>
+            use suggestion ({current.suggested})
+          </button>
+        )}
+      </div>
+    );
+  }
+  return (
+    <div className="mt-1">
+      <div className="flex items-center gap-2">
+        <input
+          autoFocus
+          value={text}
+          onChange={(e) => setText(e.target.value.toUpperCase())}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") submit(text.trim() || null);
+            if (e.key === "Escape") setEditing(false);
+          }}
+          placeholder="ETF symbol"
+          className="w-24 rounded border border-border bg-bg px-1.5 py-0.5 text-xs text-text uppercase outline-none focus:border-accent"
+          aria-label="Sector ETF"
+        />
+        {save.isPending ? <Spinner size={12} /> : <span className="text-[11px] text-muted">Enter to save · Esc</span>}
+      </div>
+      {save.error && <p className="text-[11px] text-down">{save.error.message}</p>}
+    </div>
   );
 }

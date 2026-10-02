@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS symbols (
     name         TEXT,
     exchange     TEXT,
     last_fetched TEXT,
-    full_history INTEGER NOT NULL DEFAULT 0  -- 1 once all available history has been fetched
+    full_history INTEGER NOT NULL DEFAULT 0, -- 1 once all available history has been fetched
+    sector_etf   TEXT                        -- user's override for Chart Checklist #14 (NULL = suggest)
 );
 CREATE TABLE IF NOT EXISTS watchlist (
     ticker   TEXT PRIMARY KEY,
@@ -38,7 +39,10 @@ CREATE TABLE IF NOT EXISTS market_info (
     ticker      TEXT PRIMARY KEY,
     expirations TEXT NOT NULL,  -- JSON list of ISO option expiration dates
     earnings    TEXT,           -- next earnings date (ISO), NULL if unknown
-    fetched_at  TEXT NOT NULL
+    fetched_at  TEXT NOT NULL,
+    sector      TEXT,           -- Yahoo classification, for the sector ETF suggestion
+    industry    TEXT,
+    quote_type  TEXT            -- EQUITY / ETF / MUTUALFUND ...
 );
 """
 
@@ -60,10 +64,16 @@ def connect(path: Path | None = None) -> sqlite3.Connection:
 
 def _migrate(conn: sqlite3.Connection) -> None:
     """Add columns introduced after a DB was created (CREATE TABLE IF NOT EXISTS won't)."""
-    columns = {row[1] for row in conn.execute("PRAGMA table_info(symbols)")}
-    if "full_history" not in columns:
-        with conn:
-            conn.execute("ALTER TABLE symbols ADD COLUMN full_history INTEGER NOT NULL DEFAULT 0")
+    added = {
+        "symbols": [("full_history", "INTEGER NOT NULL DEFAULT 0"), ("sector_etf", "TEXT")],
+        "market_info": [("sector", "TEXT"), ("industry", "TEXT"), ("quote_type", "TEXT")],
+    }
+    for table, columns in added.items():
+        existing = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
+        for name, decl in columns:
+            if name not in existing:
+                with conn:
+                    conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {decl}")
 
 
 def upsert_bars(conn: sqlite3.Connection, ticker: str, bars: pd.DataFrame) -> int:
@@ -162,15 +172,36 @@ def put_setting(conn: sqlite3.Connection, key: str, value) -> None:
         conn.execute("INSERT OR REPLACE INTO settings VALUES (?, ?)", (key, json.dumps(value)))
 
 
+MARKET_INFO_FIELDS = ("earnings", "fetched_at", "sector", "industry", "quote_type")
+
+
 def get_market_info(conn: sqlite3.Connection, ticker: str) -> dict | None:
     row = conn.execute(
-        "SELECT expirations, earnings, fetched_at FROM market_info WHERE ticker = ?", (ticker,)
+        f"SELECT expirations, {', '.join(MARKET_INFO_FIELDS)} FROM market_info WHERE ticker = ?", (ticker,)
     ).fetchone()
-    return None if row is None else {"expirations": json.loads(row[0]), "earnings": row[1], "fetched_at": row[2]}
+    return None if row is None else {"expirations": json.loads(row[0]), **dict(zip(MARKET_INFO_FIELDS, row[1:]))}
 
 
-def put_market_info(conn: sqlite3.Connection, ticker: str, expirations: list[str], earnings: str | None,
-                    fetched_at: str) -> None:
+def put_market_info(conn: sqlite3.Connection, ticker: str, info: dict) -> None:
+    """Store {expirations, earnings, fetched_at, sector, industry, quote_type} (missing keys -> NULL)."""
     with conn:
-        conn.execute("INSERT OR REPLACE INTO market_info VALUES (?, ?, ?, ?)",
-                     (ticker, json.dumps(expirations), earnings, fetched_at))
+        conn.execute(
+            f"INSERT OR REPLACE INTO market_info (ticker, expirations, {', '.join(MARKET_INFO_FIELDS)}) "
+            f"VALUES (?, ?, {', '.join('?' * len(MARKET_INFO_FIELDS))})",
+            (ticker, json.dumps(info["expirations"]), *(info.get(f) for f in MARKET_INFO_FIELDS)),
+        )
+
+
+def get_sector_etf(conn: sqlite3.Connection, ticker: str) -> str | None:
+    row = conn.execute("SELECT sector_etf FROM symbols WHERE ticker = ?", (ticker,)).fetchone()
+    return row[0] if row else None
+
+
+def set_sector_etf(conn: sqlite3.Connection, ticker: str, etf: str | None) -> None:
+    """Set (or clear, with None) the sector ETF override for a ticker."""
+    with conn:
+        conn.execute(
+            """INSERT INTO symbols (ticker, sector_etf) VALUES (?, ?)
+               ON CONFLICT(ticker) DO UPDATE SET sector_etf = excluded.sector_etf""",
+            (ticker, etf),
+        )

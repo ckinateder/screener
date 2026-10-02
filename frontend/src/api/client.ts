@@ -85,11 +85,21 @@ export interface ChecklistItem {
   passed: boolean | null;
 }
 
+/** Sector ETF for check #14: the user's override, else suggested from Yahoo's industry/sector. */
+export interface SectorEtf {
+  etf: string;
+  source: "override" | "industry" | "sector";
+  /** What the app would suggest without an override (null if it has no suggestion). */
+  suggested: string | null;
+}
+
 /** The Chart Checklist from strategy-rules.md, measured (kaching/analysis/checklist.py). */
 export interface Checklist extends ChecklistScore {
   symbol: string;
   as_of: string | null;
   checks: ChecklistItem[];
+  /** null for ETFs/funds and unclassified symbols. */
+  sector_etf: SectorEtf | null;
 }
 
 export interface WatchlistRow {
@@ -159,6 +169,12 @@ export const api = {
     request<WatchlistRow[]>(`/api/watchlist/refresh${force ? "?force=true" : ""}`, { method: "POST" }),
   setWatchlist: (symbols: string[]) => request<WatchlistRow[]>("/api/watchlist", json("PUT", { symbols })),
   checklist: (symbol: string) => request<Checklist>(`/api/checklist/${encodeURIComponent(symbol)}`),
+  /** Override the sector ETF for check #14; null resets to the suggestion. */
+  setSectorEtf: (symbol: string, etf: string | null) =>
+    request<{ symbol: string; sector_etf: string | null }>(
+      `/api/symbols/${encodeURIComponent(symbol)}/sector-etf`,
+      json("PUT", { etf }),
+    ),
   /** strategy-rules.md as markdown, read live from disk by the backend. */
   strategyRules: () => requestText("/api/strategy-rules"),
 };

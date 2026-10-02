@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from kaching import db
 from kaching.analysis.checklist import run_checklist
+from kaching.analysis.sector import resolve_etf
 from kaching.market_info import get_market_info
 from kaching.fetcher import fetch_ticker, parse_lookback
 from kaching.indicators import DEFAULT_CONFIG, RENAMED_IDS, build_indicators, build_zones, to_weekly
@@ -89,6 +90,10 @@ class IndicatorSetting(BaseModel):
 
 class WatchlistUpdate(BaseModel):
     symbols: list[str]
+
+
+class SectorEtfUpdate(BaseModel):
+    etf: str | None  # None = clear the override, use the suggestion
 
 
 def _validate_config(entries: list[IndicatorSetting]) -> list[dict]:
@@ -218,12 +223,36 @@ def _watchlist_rows(conn: sqlite3.Connection) -> list[dict]:
     return rows
 
 
+def sector_input(conn: sqlite3.Connection, ticker: str, info: dict | None) -> tuple[dict | None, dict | None]:
+    """(resolved ETF {etf, source, suggested}, checklist input {etf, source, bars, spy_bars}) for #14.
+
+    ETF and SPY bars go through ensure_data like any symbol (fetched once, then throttled/cached).
+    """
+    resolved = resolve_etf(db.get_sector_etf(conn, ticker), info)
+    if resolved is None:
+        return None, None
+    try:
+        for symbol in (resolved["etf"], "SPY"):
+            ensure_data(conn, symbol)
+    except HTTPException:
+        log.warning("sector ETF data unavailable for %s (%s)", ticker, resolved["etf"])
+        return resolved, None
+    bars, spy = db.load_bars(conn, resolved["etf"]), db.load_bars(conn, "SPY")
+    return resolved, {**resolved, "bars": bars, "spy_bars": spy}
+
+
+def _full_checklist(conn: sqlite3.Connection, ticker: str, daily: pd.DataFrame) -> dict:
+    info = get_market_info(conn, ticker)  # cached for a day
+    resolved, sector = sector_input(conn, ticker, info)
+    return {**run_checklist(daily, info, sector=sector), "sector_etf": resolved}
+
+
 def _checklist_score(conn: sqlite3.Connection, ticker: str) -> dict | None:
-    """Watchlist badge: how many Chart Checklist items pass, from stored bars (no fetch)."""
+    """Watchlist badge: how many Chart Checklist items pass."""
     daily = db.load_bars(conn, ticker)
     if daily.empty:
         return None
-    result = run_checklist(daily, get_market_info(conn, ticker))  # market info cached for a day
+    result = _full_checklist(conn, ticker, daily)
     return {k: result[k] for k in ("passed", "applicable", "all_pass")}
 
 
@@ -302,7 +331,18 @@ def checklist(ticker: str, conn: sqlite3.Connection = Depends(get_conn)):
     daily = db.load_bars(conn, ticker)
     if daily.empty:
         raise HTTPException(404, f"No data found for {ticker}")
-    return {"symbol": ticker, **run_checklist(daily, get_market_info(conn, ticker))}
+    return {"symbol": ticker, **_full_checklist(conn, ticker, daily)}
+
+
+@app.put("/api/symbols/{ticker}/sector-etf")
+def set_sector_etf(ticker: str, body: SectorEtfUpdate, conn: sqlite3.Connection = Depends(get_conn)):
+    """Override the sector ETF used by Chart Checklist #14 (null resets to the suggestion)."""
+    ticker = ticker.upper()
+    etf = body.etf.strip().upper() if body.etf and body.etf.strip() else None
+    if etf:
+        ensure_data(conn, etf)  # 404/502 if it has no data: nothing is saved
+    db.set_sector_etf(conn, ticker, etf)
+    return {"symbol": ticker, "sector_etf": etf}
 
 
 def rules_path() -> Path:

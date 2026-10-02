@@ -133,3 +133,14 @@ export function useStrategyRules(enabled: boolean) {
     retry: false,
   });
 }
+
+export function useSetSectorEtf(symbol: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (etf: string | null) => api.setSectorEtf(symbol!, etf),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.checklist(symbol ?? "") });
+      qc.invalidateQueries({ queryKey: keys.watchlist }); // badge score may change
+    },
+  });
+}

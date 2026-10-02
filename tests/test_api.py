@@ -42,8 +42,9 @@ def market(monkeypatch):
 def client(tmp_path, monkeypatch, market):
     monkeypatch.setenv("KACHING_DB", str(tmp_path / "api.db"))
     monkeypatch.setattr(api, "search_quotes", lambda q, max_results=15: QUOTES)
-    monkeypatch.setattr(market_info, "fetch_market_info",
-                        lambda t: {"expirations": ["2099-01-02"], "earnings": "2099-03-01"})
+    monkeypatch.setattr(market_info, "fetch_market_info", lambda t: {
+        "expirations": ["2099-01-02"], "earnings": "2099-03-01",
+        "sector": "Technology", "industry": "Semiconductors", "quote_type": "EQUITY"})
     return TestClient(api.app)
 
 
@@ -145,18 +146,35 @@ def test_large_responses_are_gzipped(client):
 
 def test_checklist_endpoint(client):
     body = client.get("/api/checklist/aapl").json()
-    assert body["symbol"] == "AAPL" and len(body["checks"]) == 13
-    assert body["applicable"] <= 13 and body["as_of"]
+    assert body["symbol"] == "AAPL" and len(body["checks"]) == 14
+    assert body["applicable"] <= 14 and body["as_of"]
+    assert body["sector_etf"] == {"etf": "SMH", "source": "industry", "suggested": "SMH"}
     checks = {c["id"]: c for c in body["checks"]}
     assert checks["earnings"]["value"].startswith("Mar 1")  # market info wired through (fake Yahoo)
     assert client.get("/api/checklist/BAD").status_code == 404
+
+
+def test_sector_etf_override_roundtrip(client):
+    assert client.put("/api/symbols/aapl/sector-etf", json={"etf": "wgmi"}).json()["sector_etf"] == "WGMI"
+    body = client.get("/api/checklist/AAPL").json()
+    assert body["sector_etf"] == {"etf": "WGMI", "source": "override", "suggested": "SMH"}
+    sector_row = next(c for c in body["checks"] if c["id"] == "sector_etf")
+    assert sector_row["value"].startswith("WGMI (override)")
+    client.put("/api/symbols/AAPL/sector-etf", json={"etf": None})  # reset
+    assert client.get("/api/checklist/AAPL").json()["sector_etf"]["source"] == "industry"
+
+
+def test_unknown_sector_etf_is_rejected_and_not_saved(client):
+    client.put("/api/symbols/AAPL/sector-etf", json={"etf": "WGMI"})
+    assert client.put("/api/symbols/AAPL/sector-etf", json={"etf": "BAD"}).status_code == 404
+    assert client.get("/api/checklist/AAPL").json()["sector_etf"]["etf"] == "WGMI"
 
 
 def test_watchlist_rows_include_checklist_score(client):
     rows = client.put("/api/watchlist", json={"symbols": ["AAPL"]}).json()
     score = rows[0]["checklist"]
     assert set(score) == {"passed", "applicable", "all_pass"}
-    assert 0 <= score["passed"] <= score["applicable"] <= 13
+    assert 0 <= score["passed"] <= score["applicable"] <= 14
 
 
 def test_strategy_rules_served_live(client, tmp_path, monkeypatch):

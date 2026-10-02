@@ -8,6 +8,12 @@ from kaching.fetcher import fetch_ticker, parse_lookback
 from kaching.market_info import get_market_info
 
 
+def sector_input(conn, ticker, info):
+    """#14 input; lives in the API module (it reuses the API's fetch/throttle logic)."""
+    from kaching.api import sector_input as _sector_input  # lazy: keeps `fetch`/`list` free of FastAPI imports
+    return _sector_input(conn, ticker, info)
+
+
 def cmd_fetch(args) -> int:
     start = parse_lookback(args.start or args.period)
     conn = db.connect()
@@ -50,7 +56,9 @@ def cmd_check(args) -> int:
         if daily.empty:
             print(f"\n{ticker}: no data")
             continue
-        result = run_checklist(daily, get_market_info(conn, ticker))
+        info = get_market_info(conn, ticker)
+        _, sector = sector_input(conn, ticker, info)
+        result = run_checklist(daily, info, sector=sector)
         verdict = "PASS" if result["all_pass"] else "—"
         print(f"\n{ticker}  {result['passed']}/{result['applicable']}  {verdict}  (as of {result['as_of']})")
         for c in result["checks"]:

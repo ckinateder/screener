@@ -67,9 +67,9 @@ cd frontend && npm run typecheck
 
 ## Chart Checklist
 
-The 13-item Chart Checklist from `strategy-rules.md`, measured in `kaching/analysis/checklist.py`.
+The 14-item Chart Checklist from `strategy-rules.md`, measured in `kaching/analysis/checklist.py`.
 Each check reports its value, its threshold and ✓ / ✗ / – (not applicable). The app shows it under
-the watchlist for the active symbol, with an `X/13` badge per watchlist row; the CLI has `check`.
+the watchlist for the active symbol, with an `X/14` badge per watchlist row; the CLI has `check`.
 
 | # | Check | Pass when |
 |---|---|---|
@@ -86,9 +86,12 @@ the watchlist for the active symbol, with an `X/13` badge per watchlist row; the
 | 11 | Average volume | 50-day average ≥ 1M shares (n/a for funds) |
 | 12 | Weekly expirations | an option expiration in each of the next 4 weeks |
 | 13 | Earnings window | next earnings more than 8 weeks away (n/a if no date) |
+| 14 | Sector ETF | the stock's sector ETF passes checks 1–3; relative strength vs SPY shown |
 
 #12–#13 use option expirations and the next earnings date from Yahoo, cached per ticker for a
-day (`kaching/market_info.py`); the chart's Refresh button refetches them. Thresholds are constants
+day (`kaching/market_info.py`); the chart's Refresh button refetches them. #14's ETF is suggested from
+Yahoo's industry, then sector (edit the map in `kaching/analysis/sector_etfs.json`), and can be
+overridden per ticker on checklist row #14. Thresholds are constants
 at the top of `checklist.py`. The checklist uses the strategy's own
 parameters, so the chart's indicator settings don't affect it.
 
