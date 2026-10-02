@@ -1,5 +1,7 @@
 # Kaching v3
 
+![window screenshot](img/window.png)
+
 A TradingView-style charting app for picking stocks for the Kaching weekly options strategy. You can search any Yahoo Finance symbol, chart it with daily and weekly EMAs and Keltner Channels, and keep a watchlist. Data is fetched incrementally into a local SQLite database.
 
 - **Backend:** Python, FastAPI, yfinance, SQLite (`kaching/`)
@@ -65,9 +67,9 @@ cd frontend && npm run typecheck
 
 ## Chart Checklist
 
-The 11-item Chart Checklist from `strategy-rules.md`, measured in `kaching/analysis/checklist.py`.
+The 13-item Chart Checklist from `strategy-rules.md`, measured in `kaching/analysis/checklist.py`.
 Each check reports its value, its threshold and ✓ / ✗ / – (not applicable). The app shows it under
-the watchlist for the active symbol, with an `X/11` badge per watchlist row; the CLI has `check`.
+the watchlist for the active symbol, with an `X/13` badge per watchlist row; the CLI has `check`.
 
 | # | Check | Pass when |
 |---|---|---|
@@ -76,14 +78,18 @@ the watchlist for the active symbol, with an `X/11` badge per watchlist row; the
 | 3 | Last 90 days | 63-bar return > 0 and regression slope > 0 |
 | 4 | vs 21 EMA | ≥ 80% of the last 20 closes above it, and above now |
 | 5 | vs 50 SMA | above by ≥ 1 ATR(14) |
-| 6 | Keltner position | 5-day average of (close − mid) / (upper − mid) between 0.5 and 1.25 |
+| 6 | Keltner position | 5-day average of (close − mid) / (upper − mid) between 0.5 and 1.1 |
 | 7 | Volume | up-day ÷ down-day volume over 50 days ≥ 1.0 (n/a without volume data, e.g. funds) |
 | 8 | Price in range | last close $25–$300 |
 | 9 | Support layers | ≥ 2 weekly support zones below price |
 | 10 | Not a vertical run | fails only if up > 15% in 20 days **and** in a near-straight line (efficiency ratio ≥ 0.4) |
 | 11 | Average volume | 50-day average ≥ 1M shares (n/a for funds) |
+| 12 | Weekly expirations | an option expiration in each of the next 4 weeks |
+| 13 | Earnings window | next earnings more than 8 weeks away (n/a if no date) |
 
-Thresholds are constants at the top of `checklist.py`. The checklist uses the strategy's own
+#12–#13 use option expirations and the next earnings date from Yahoo, cached per ticker for a
+day (`kaching/market_info.py`); the chart's Refresh button refetches them. Thresholds are constants
+at the top of `checklist.py`. The checklist uses the strategy's own
 parameters, so the chart's indicator settings don't affect it.
 
 ## CLI

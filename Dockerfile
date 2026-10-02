@@ -20,6 +20,7 @@ RUN pip install --no-cache-dir -r requirements.txt \
     && mkdir -p /data && chown kaching /data
 
 COPY kaching/ kaching/
+COPY strategy-rules.md .
 COPY --from=frontend /frontend/dist frontend/dist
 USER kaching
 VOLUME /data

@@ -23,22 +23,22 @@ The 60-second chart check. Once charts are set up, evaluating a stock takes abou
 | 3  | Last 90 days       | 63-day return and trend slope                                                     | both positive                                   |
 | 4  | vs 21 EMA          | % of the last 20 closes above it                                                  | ≥ 80%, and above now                            |
 | 5  | vs 50 MA           | distance above the SMA 50, in ATRs                                                | ≥ 1 ATR ("room to spare")                       |
-| 6  | Keltner position   | where price sits in the channel (0 = middle line, 1 = upper band), 5-day average | 0.5 – 1.25                                      |
+| 6  | Keltner position   | where price sits in the channel (0 = middle line, 1 = upper band), 5-day average | 0.5 – 1.1                                      |
 | 7  | Volume             | up-day ÷ down-day volume over 50 days                                             | ≥ 1.0; n/a for funds                            |
 | 8  | Price in range     | last close                                                                        | $25 – $300 (sweet spot for spread math)         |
 | 9  | Support layers     | weekly support zones below price (W Support defaults)                             | ≥ 2 zones (the uptrend half is #1)              |
 | 10 | Not a vertical run | 20-day gain, and straightness (net move ÷ total daily movement; 1 = straight line) | fails only if > 15% gain **and** straightness ≥ 0.4 |
 | 11 | Average volume     | 50-day average daily volume                                                       | ≥ 1M shares; n/a for funds                      |
+| 12 | Weekly expirations | option expiration dates in the next 4 weeks (Yahoo, refreshed daily)              | an expiration in each of the next 4 weeks       |
+| 13 | Earnings window    | next earnings date (Yahoo, refreshed daily)                                       | more than 8 weeks (56 days) away                |
 
 ### Full Qualifying Checklist
 
-The quick qualification checklist. Before opening any chart, every box needs a check before a stock makes the list for the week. About 60 seconds. (Price range, support layers, vertical run and average volume moved to the Chart Checklist as #8–#11.)
+The quick qualification checklist. Before opening any chart, every box needs a check before a stock makes the list for the week. About 60 seconds. (Price range, support layers, vertical run and average volume moved to the Chart Checklist as #8–#11; weekly expirations and earnings as #12–#13.)
 
 | # | What to Check | Green Light |
 | --- | --- | --- |
 | 1 | Options chain liquidity | Bid/ask 10–20 cents or less, strong open interest |
-| 2 | Weekly expirations available | Confirmed on options chain or CBOE site |
-| 3 | Sector ETF trending same direction | Money flowing in — confirmed on sector ETF chart |
-| 4 | ATM premium justifies the trade | Friday put pays enough for the margin and risk |
-| 5 | Earnings date confirmed | No earnings within the trade window |
+| 2 | Sector ETF trending same direction | Money flowing in — confirmed on sector ETF chart |
+| 3 | ATM premium justifies the trade | Friday put pays enough for the margin and risk |
 

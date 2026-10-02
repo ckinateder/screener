@@ -34,6 +34,12 @@ CREATE TABLE IF NOT EXISTS settings (
     key   TEXT PRIMARY KEY,
     value TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS market_info (
+    ticker      TEXT PRIMARY KEY,
+    expirations TEXT NOT NULL,  -- JSON list of ISO option expiration dates
+    earnings    TEXT,           -- next earnings date (ISO), NULL if unknown
+    fetched_at  TEXT NOT NULL
+);
 """
 
 
@@ -154,3 +160,17 @@ def get_setting(conn: sqlite3.Connection, key: str):
 def put_setting(conn: sqlite3.Connection, key: str, value) -> None:
     with conn:
         conn.execute("INSERT OR REPLACE INTO settings VALUES (?, ?)", (key, json.dumps(value)))
+
+
+def get_market_info(conn: sqlite3.Connection, ticker: str) -> dict | None:
+    row = conn.execute(
+        "SELECT expirations, earnings, fetched_at FROM market_info WHERE ticker = ?", (ticker,)
+    ).fetchone()
+    return None if row is None else {"expirations": json.loads(row[0]), "earnings": row[1], "fetched_at": row[2]}
+
+
+def put_market_info(conn: sqlite3.Connection, ticker: str, expirations: list[str], earnings: str | None,
+                    fetched_at: str) -> None:
+    with conn:
+        conn.execute("INSERT OR REPLACE INTO market_info VALUES (?, ?, ?, ?)",
+                     (ticker, json.dumps(expirations), earnings, fetched_at))

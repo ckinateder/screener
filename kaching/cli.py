@@ -5,6 +5,7 @@ import sys
 from kaching import db
 from kaching.analysis.checklist import run_checklist
 from kaching.fetcher import fetch_ticker, parse_lookback
+from kaching.market_info import get_market_info
 
 
 def cmd_fetch(args) -> int:
@@ -49,7 +50,7 @@ def cmd_check(args) -> int:
         if daily.empty:
             print(f"\n{ticker}: no data")
             continue
-        result = run_checklist(daily)
+        result = run_checklist(daily, get_market_info(conn, ticker))
         verdict = "PASS" if result["all_pass"] else "—"
         print(f"\n{ticker}  {result['passed']}/{result['applicable']}  {verdict}  (as of {result['as_of']})")
         for c in result["checks"]:

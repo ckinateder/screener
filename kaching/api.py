@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from kaching import db
 from kaching.analysis.checklist import run_checklist
+from kaching.market_info import get_market_info
 from kaching.fetcher import fetch_ticker, parse_lookback
 from kaching.indicators import DEFAULT_CONFIG, RENAMED_IDS, build_indicators, build_zones, to_weekly
 
@@ -222,7 +223,7 @@ def _checklist_score(conn: sqlite3.Connection, ticker: str) -> dict | None:
     daily = db.load_bars(conn, ticker)
     if daily.empty:
         return None
-    result = run_checklist(daily)
+    result = run_checklist(daily, get_market_info(conn, ticker))  # market info cached for a day
     return {k: result[k] for k in ("passed", "applicable", "all_pass")}
 
 
@@ -256,6 +257,8 @@ def chart(ticker: str, tf: Literal["D", "W"] = "D", refresh: bool = False, pane:
           conn: sqlite3.Connection = Depends(get_conn)):
     ticker = ticker.upper()
     status = ensure_data(conn, ticker, force=refresh)
+    if refresh:  # the Refresh button also refreshes option expirations / earnings for the checklist
+        get_market_info(conn, ticker, force=True)
     daily = db.load_bars(conn, ticker)
     if daily.empty:
         raise HTTPException(404, f"No data found for {ticker}")
@@ -299,7 +302,22 @@ def checklist(ticker: str, conn: sqlite3.Connection = Depends(get_conn)):
     daily = db.load_bars(conn, ticker)
     if daily.empty:
         raise HTTPException(404, f"No data found for {ticker}")
-    return {"symbol": ticker, **run_checklist(daily)}
+    return {"symbol": ticker, **run_checklist(daily, get_market_info(conn, ticker))}
+
+
+def rules_path() -> Path:
+    """strategy-rules.md: env KACHING_RULES, else the repo root (/app in Docker)."""
+    default = Path(__file__).resolve().parent.parent / "strategy-rules.md"
+    return Path(os.environ.get("KACHING_RULES", default))
+
+
+@app.get("/api/strategy-rules")
+def strategy_rules():
+    """The strategy rules markdown, read on every request so edits show up without a restart."""
+    path = rules_path()
+    if not path.is_file():
+        raise HTTPException(404, f"{path.name} not found")
+    return Response(path.read_text(encoding="utf-8"), media_type="text/markdown; charset=utf-8")
 
 
 @app.get("/api/settings/indicators")

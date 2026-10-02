@@ -4,6 +4,8 @@ Each check reports the measured value, its threshold, and passed: True / False /
 not applicable (e.g. too little history, or no volume data for mutual funds) and isn't counted.
 The checklist uses the strategy's own parameters below, independent of the chart's display settings.
 """
+from datetime import date, timedelta
+
 import numpy as np
 import pandas as pd
 
@@ -18,7 +20,7 @@ RECENT_BARS = 63                        # 3. ~90 calendar days
 EMA_LEN, EMA_WINDOW, EMA_MIN_PCT = 21, 20, 80.0           # 4.
 SMA_LEN, ATR_LEN, SMA_MIN_ATR = 50, 14, 1.0               # 5. "room to spare" = 1 ATR
 KC_EMA, KC_ATR, KC_MULT = 20, 10, 2.0                     # 6.
-KC_WINDOW, KC_MIN, KC_MAX = 5, 0.5, 1.25
+KC_WINDOW, KC_MIN, KC_MAX = 5, 0.5, 1.1
 VOL_WINDOW, VOL_MIN_RATIO = 50, 1.0                       # 7.
 PRICE_MIN, PRICE_MAX = 25.0, 300.0                        # 8. sweet spot for spread math
 SUPPORT_MIN_ZONES = 2                                     # 9. weekly zones, W Support defaults:
@@ -28,6 +30,8 @@ ZONE_CAP = 10  # zones counted at most (shown as "10+")
 # line. Size alone flags volatile stocks in ordinary choppy months (SNDK: median 20d gain ~20%).
 VERTICAL_BARS, VERTICAL_MIN_GAIN, VERTICAL_MIN_ER = 20, 0.15, 0.4
 AVG_VOL_WINDOW, AVG_VOL_MIN = 50, 1_000_000               # 11.
+WEEKLY_OPTION_WEEKS = 4                                   # 12. an expiration in each of the next 4 weeks
+EARNINGS_WINDOW_DAYS = 56                                 # 13. earnings must be > 8 weeks away
 TRADING_DAYS_PER_MONTH = 21
 
 
@@ -96,8 +100,47 @@ def _trend_text(t: dict | None) -> str:
     return text + (" · below last swing low" if t["broken"] else "")
 
 
-def run_checklist(daily: pd.DataFrame) -> dict:
-    """Run all 11 checks on daily bars (oldest first). See the module docstring for the result shape."""
+def _week_starts(today: date, weeks: int) -> list[date]:
+    """Mondays of the next `weeks` weeks: this week on a weekday, next week on a weekend (Sunday routine)."""
+    monday = today - timedelta(days=today.weekday())
+    if today.weekday() >= 5:
+        monday += timedelta(days=7)
+    return [monday + timedelta(weeks=i) for i in range(weeks)]
+
+
+def _weekly_options_check(expirations: list[str], today: date) -> dict:
+    rule = f"an expiration in each of the next {WEEKLY_OPTION_WEEKS} weeks"
+    if not expirations:
+        return _check("weekly_options", "Weekly expirations available", "no listed options", rule, False)
+    dates = sorted(d for d in (date.fromisoformat(e) for e in expirations) if d >= today)
+    weeks = _week_starts(today, WEEKLY_OPTION_WEEKS)
+    covered = sum(any(w <= d < w + timedelta(days=7) for d in dates) for w in weeks)
+    upcoming = ", ".join(d.strftime("%m-%d") for d in dates[:3])
+    if covered == WEEKLY_OPTION_WEEKS:
+        value = f"weekly · next {upcoming}"
+    else:
+        value = f"{covered}/{WEEKLY_OPTION_WEEKS} weeks covered · next {upcoming}"
+    return _check("weekly_options", "Weekly expirations available", value, rule, covered == WEEKLY_OPTION_WEEKS)
+
+
+def _earnings_check(earnings: str | None, today: date) -> dict:
+    rule = f"next earnings more than {EARNINGS_WINDOW_DAYS // 7} weeks ({EARNINGS_WINDOW_DAYS} days) away"
+    label = "Earnings outside trade window"
+    if earnings is None:
+        return _check("earnings", label, "no earnings date", rule, None)
+    when = date.fromisoformat(earnings)
+    days = (when - today).days
+    if days < 0:  # Yahoo hasn't published the next date yet
+        return _check("earnings", label, f"last reported {when:%b %-d}; next not announced", rule, None)
+    return _check("earnings", label, f"{when:%b %-d} (in {days} days)", rule, days > EARNINGS_WINDOW_DAYS)
+
+
+def run_checklist(daily: pd.DataFrame, info: dict | None = None, today: date | None = None) -> dict:
+    """Run all 13 checks on daily bars (oldest first). See the module docstring for the result shape.
+
+    `info` is market data from kaching.market_info ({expirations, earnings}); without it, #12/#13 are n/a.
+    """
+    today = today or date.today()
     if len(daily) > 0:
         daily = daily[daily.index >= daily.index[-1] - pd.DateOffset(years=EVAL_YEARS)]
     close, n = daily["close"], len(daily)
@@ -225,6 +268,16 @@ def run_checklist(daily: pd.DataFrame) -> dict:
     checks.append(_check("avg_volume", "Average daily volume", value,
                          f"≥ {AVG_VOL_MIN / 1e6:g}M over {AVG_VOL_WINDOW}d",
                          None if avg_vol is None else avg_vol >= AVG_VOL_MIN))
+
+    # 12-13. Weekly expirations, earnings (live market data, passed in by the caller)
+    if info is None:
+        checks.append(_check("weekly_options", "Weekly expirations available", "unavailable",
+                             f"an expiration in each of the next {WEEKLY_OPTION_WEEKS} weeks", None))
+        checks.append(_check("earnings", "Earnings outside trade window", "unavailable",
+                             f"next earnings more than {EARNINGS_WINDOW_DAYS // 7} weeks away", None))
+    else:
+        checks.append(_weekly_options_check(info["expirations"], today))
+        checks.append(_earnings_check(info["earnings"], today))
 
     applicable = [c for c in checks if c["passed"] is not None]
     passed = sum(c["passed"] for c in applicable)

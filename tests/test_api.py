@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 import sqlite3
 from datetime import date
 
-from kaching import api, db, fetcher
+from kaching import api, db, fetcher, market_info
 from kaching.indicators import DEFAULT_CONFIG
 from tests.test_fetcher import FakeMarket
 
@@ -42,6 +42,8 @@ def market(monkeypatch):
 def client(tmp_path, monkeypatch, market):
     monkeypatch.setenv("KACHING_DB", str(tmp_path / "api.db"))
     monkeypatch.setattr(api, "search_quotes", lambda q, max_results=15: QUOTES)
+    monkeypatch.setattr(market_info, "fetch_market_info",
+                        lambda t: {"expirations": ["2099-01-02"], "earnings": "2099-03-01"})
     return TestClient(api.app)
 
 
@@ -143,8 +145,10 @@ def test_large_responses_are_gzipped(client):
 
 def test_checklist_endpoint(client):
     body = client.get("/api/checklist/aapl").json()
-    assert body["symbol"] == "AAPL" and len(body["checks"]) == 11
-    assert body["applicable"] <= 11 and body["as_of"]
+    assert body["symbol"] == "AAPL" and len(body["checks"]) == 13
+    assert body["applicable"] <= 13 and body["as_of"]
+    checks = {c["id"]: c for c in body["checks"]}
+    assert checks["earnings"]["value"].startswith("Mar 1")  # market info wired through (fake Yahoo)
     assert client.get("/api/checklist/BAD").status_code == 404
 
 
@@ -152,7 +156,28 @@ def test_watchlist_rows_include_checklist_score(client):
     rows = client.put("/api/watchlist", json={"symbols": ["AAPL"]}).json()
     score = rows[0]["checklist"]
     assert set(score) == {"passed", "applicable", "all_pass"}
-    assert 0 <= score["passed"] <= score["applicable"] <= 11
+    assert 0 <= score["passed"] <= score["applicable"] <= 13
+
+
+def test_strategy_rules_served_live(client, tmp_path, monkeypatch):
+    rules = tmp_path / "rules.md"
+    rules.write_text("# Strategy Rules\n\n| # | Check |\n|---|---|\n| 1 | Weekly trend |\n", encoding="utf-8")
+    monkeypatch.setenv("KACHING_RULES", str(rules))
+    res = client.get("/api/strategy-rules")
+    assert res.status_code == 200 and res.headers["content-type"].startswith("text/markdown")
+    assert res.text.startswith("# Strategy Rules")
+    rules.write_text(res.text + "| 2 | Daily in sync |\n", encoding="utf-8")  # edited -> next request sees it
+    assert "Daily in sync" in client.get("/api/strategy-rules").text
+
+
+def test_strategy_rules_missing_is_404(client, tmp_path, monkeypatch):
+    monkeypatch.setenv("KACHING_RULES", str(tmp_path / "nope.md"))
+    assert client.get("/api/strategy-rules").status_code == 404
+
+
+def test_strategy_rules_default_path_is_repo_file(client, monkeypatch):
+    monkeypatch.delenv("KACHING_RULES", raising=False)
+    assert "Chart Checklist" in client.get("/api/strategy-rules").text
 
 
 def test_chart_unknown_ticker_404(client):
@@ -228,11 +253,11 @@ def test_chart_includes_support_zones(client, market):
 def test_old_saved_config_keeps_customisations_when_indicators_are_added(client):
     # A config saved before support zones existed: no sr entries, customised Keltner.
     old = [dict(e) for e in DEFAULT_CONFIG if e["kind"] != "sr"]
-    kc(old)["multiplier"] = 1.25
+    kc(old)["multiplier"] = 1.1
     conn = db.connect()
     db.put_setting(conn, "indicators", old)
     cfg = client.get("/api/settings/indicators").json()
-    assert kc(cfg)["multiplier"] == 1.25
+    assert kc(cfg)["multiplier"] == 1.1
     assert {e["id"] for e in cfg} == {e["id"] for e in DEFAULT_CONFIG}
 
 

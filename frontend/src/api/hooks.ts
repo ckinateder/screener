@@ -122,3 +122,14 @@ export function useChecklist(symbol: string | null) {
     retry: false,
   });
 }
+
+/** Fetched only while the rules popover is open; short staleTime so file edits show on the next hover. */
+export function useStrategyRules(enabled: boolean) {
+  return useQuery({
+    queryKey: ["strategy-rules"],
+    queryFn: api.strategyRules,
+    enabled,
+    staleTime: 10_000,
+    retry: false,
+  });
+}

@@ -2,6 +2,7 @@ import type { ChecklistScore } from "../api/client";
 import { useChecklist } from "../api/hooks";
 import { formatShortDate } from "../lib/format";
 import { useActivePane } from "../store";
+import { StrategyRulesPopover } from "./StrategyRulesPopover";
 import { Spinner } from "./ui/Spinner";
 
 const MARK = { true: { icon: "✓", cls: "text-up" }, false: { icon: "✗", cls: "text-down" }, null: { icon: "–", cls: "text-muted" } };
@@ -28,6 +29,7 @@ export function ChecklistPanel() {
     <section className="max-h-[50%] shrink-0 overflow-y-auto border-t-4 border-border">
       <div className="sticky top-0 flex h-9 items-center gap-2 bg-bg px-3">
         <h2 className="font-medium">Checklist</h2>
+        <StrategyRulesPopover />
         <span className="text-muted">{symbol}</span>
         <span className="flex-1" />
         {checklist.isFetching && <Spinner size={12} />}

@@ -1,3 +1,5 @@
+from datetime import date
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -89,10 +91,10 @@ def test_trend_needs_two_swings():
 # ------------------------------------------------------------------ full checklist
 
 def test_clean_uptrend_passes_everything():
-    result = run_checklist(uptrend_then_climb())
+    result = run_checklist(uptrend_then_climb(), info(), today=TODAY)  # weeklies, earnings 75 days out
     failing = [(c["id"], c["value"]) for c in result["checks"] if c["passed"] is not True]
     assert failing == []
-    assert (result["passed"], result["applicable"], result["all_pass"]) == (11, 11, True)
+    assert (result["passed"], result["applicable"], result["all_pass"]) == (13, 13, True)
 
 
 def test_downtrend_fails_trend_and_ma_checks():
@@ -131,7 +133,7 @@ def test_result_shape():
     assert result["as_of"] == uptrend_then_climb().index[-1].strftime("%Y-%m-%d")
     assert [c["id"] for c in result["checks"]] == [
         "weekly_trend", "daily_sync", "recent_90d", "ema21", "sma50", "keltner", "volume",
-        "price_range", "support_layers", "not_vertical", "avg_volume"]
+        "price_range", "support_layers", "not_vertical", "avg_volume", "weekly_options", "earnings"]
     for c in result["checks"]:
         assert set(c) == {"id", "label", "value", "threshold", "passed"}
         assert c["value"] and c["threshold"]
@@ -202,3 +204,65 @@ def test_avg_volume_threshold():
     assert by_id(run_checklist(bars))["avg_volume"]["passed"] is False
     bars["volume"] = 1_200_000
     assert by_id(run_checklist(bars))["avg_volume"]["passed"] is True
+
+
+# ------------------------------------------------------------------ market info checks (#12-#13)
+
+TODAY = date(2026, 10, 1)  # a Thursday
+FRIDAYS = ["2026-10-02", "2026-10-09", "2026-10-16", "2026-10-23", "2026-10-30"]
+
+
+def info(expirations=FRIDAYS, earnings="2026-12-15"):
+    return {"expirations": expirations, "earnings": earnings, "fetched_at": "2026-10-01T00:00:00+00:00"}
+
+
+def market_checks(market_info, today=TODAY):
+    return by_id(run_checklist(uptrend_then_climb(), market_info, today=today))
+
+
+def test_weekly_expirations_pass():
+    check = market_checks(info())["weekly_options"]
+    assert check["passed"] is True and check["value"].startswith("weekly")
+
+
+def test_monthly_only_expirations_fail():
+    check = market_checks(info(expirations=["2026-10-16", "2026-11-20", "2026-12-18"]))["weekly_options"]
+    assert check["passed"] is False and check["value"].startswith("1/4 weeks")
+
+
+def test_no_listed_options_fails():
+    check = market_checks(info(expirations=[]))["weekly_options"]
+    assert check["passed"] is False and check["value"] == "no listed options"
+
+
+def test_holiday_thursday_expiration_counts_for_its_week():
+    # Week of Oct 5 expires Thursday Oct 8 (e.g. a Friday holiday)
+    exps = ["2026-10-02", "2026-10-08", "2026-10-16", "2026-10-23"]
+    assert market_checks(info(expirations=exps))["weekly_options"]["passed"] is True
+
+
+def test_weekend_run_looks_at_the_coming_weeks():
+    # Run on Sunday Oct 4: the next 4 weeks start Monday Oct 5, so Oct 2 doesn't count.
+    exps = ["2026-10-02", "2026-10-09", "2026-10-16", "2026-10-23"]  # missing Oct 30
+    assert market_checks(info(expirations=exps), today=date(2026, 10, 4))["weekly_options"]["passed"] is False
+
+
+@pytest.mark.parametrize("earnings,passed", [("2026-10-31", False), ("2026-11-26", False), ("2026-11-30", True)])
+def test_earnings_window_is_8_weeks(earnings, passed):
+    # Oct 1 + 56 days = Nov 26 (still inside the window)
+    check = market_checks(info(earnings=earnings))["earnings"]
+    assert check["passed"] is passed, check["value"]
+
+
+def test_earnings_value_shows_date_and_days():
+    assert market_checks(info(earnings="2026-11-17"))["earnings"]["value"] == "Nov 17 (in 47 days)"
+
+
+def test_missing_or_past_earnings_date_is_not_applicable():
+    assert market_checks(info(earnings=None))["earnings"]["passed"] is None
+    assert market_checks(info(earnings="2026-07-30"))["earnings"]["passed"] is None  # stale: already reported
+
+
+def test_no_market_info_makes_both_checks_not_applicable():
+    checks = market_checks(None)
+    assert checks["weekly_options"]["passed"] is None and checks["earnings"]["passed"] is None

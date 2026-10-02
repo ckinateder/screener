@@ -24,7 +24,80 @@ body {
   @apply bg-bg text-text font-sans text-[13px] antialiased;
 }
 
+/* Dark, thin scrollbars (TradingView-style) everywhere: popover, watchlist, checklist.
+   color-scheme makes any remaining native controls dark too. */
+:root {
+  color-scheme: dark;
+}
+
+* {
+  scrollbar-width: thin; /* Chrome 121+, Firefox */
+  scrollbar-color: #363a45 transparent;
+}
+
+/* Safari (and older Chromium) ignore the properties above and use these instead. */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #363a45;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4a4f5c;
+}
+
 /* Hide number input spinners, as TradingView's dialogs do. */
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
+}
+
+/* Rendered markdown (strategy rules popover). */
+.md {
+  @apply text-[13px] leading-relaxed text-text;
+}
+.md h1 {
+  @apply mb-3 text-lg font-semibold;
+}
+.md h2 {
+  @apply mt-4 mb-2 text-base font-semibold;
+}
+.md h3 {
+  @apply mt-4 mb-2 font-semibold text-accent;
+}
+.md p {
+  @apply mb-2 text-muted;
+}
+.md ol,
+.md ul {
+  @apply mb-2 ml-5 list-outside;
+}
+.md ol {
+  @apply list-decimal;
+}
+.md ul {
+  @apply list-disc;
+}
+.md li {
+  @apply mb-0.5;
+}
+.md strong {
+  @apply font-semibold text-text;
+}
+.md table {
+  @apply mb-3 w-full border-collapse text-xs;
+}
+.md th,
+.md td {
+  @apply border border-border px-2 py-1 text-left align-top;
+}
+.md th {
+  @apply bg-bg font-medium text-muted;
+}
+.md tbody tr:nth-child(even) {
+  @apply bg-bg/50;
 }

@@ -110,7 +110,8 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+/** fetch + FastAPI error handling; callers decode the body (JSON or text). */
+async function send(path: string, init?: RequestInit): Promise<Response> {
   const res = await fetch(path, {
     ...init,
     headers: init?.body ? { "Content-Type": "application/json" } : undefined,
@@ -128,7 +129,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     }
     throw new ApiError(res.status, detail);
   }
-  return res.json();
+  return res;
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  return (await send(path, init)).json();
+}
+
+async function requestText(path: string): Promise<string> {
+  return (await send(path)).text();
 }
 
 const json = (method: string, body: unknown): RequestInit => ({ method, body: JSON.stringify(body) });
@@ -150,4 +159,6 @@ export const api = {
     request<WatchlistRow[]>(`/api/watchlist/refresh${force ? "?force=true" : ""}`, { method: "POST" }),
   setWatchlist: (symbols: string[]) => request<WatchlistRow[]>("/api/watchlist", json("PUT", { symbols })),
   checklist: (symbol: string) => request<Checklist>(`/api/checklist/${encodeURIComponent(symbol)}`),
+  /** strategy-rules.md as markdown, read live from disk by the backend. */
+  strategyRules: () => requestText("/api/strategy-rules"),
 };
