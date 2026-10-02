@@ -45,7 +45,12 @@ def cmd_check(args) -> int:
     if not tickers:
         print("No tickers given (and the watchlist is empty)", file=sys.stderr)
         return 1
-    marks = {True: "✓", False: "✗", None: "–"}
+    def mark(c):  # ✓ pass · ◐ near (graded, 50-99) · ✗ fail · – n/a
+        if c["passed"] is None:
+            return "–"
+        if c["passed"]:
+            return "✓"
+        return "◐" if c["score"] is not None and c["score"] >= 50 else "✗"
     for ticker in tickers:
         stored = db.date_range(conn, ticker)
         try:  # bring data up to date first (all history if new)
@@ -59,10 +64,14 @@ def cmd_check(args) -> int:
         info = get_market_info(conn, ticker)
         _, sector = sector_input(conn, ticker, info)
         result = run_checklist(daily, info, sector=sector)
-        verdict = "PASS" if result["all_pass"] else "—"
-        print(f"\n{ticker}  {result['passed']}/{result['applicable']}  {verdict}  (as of {result['as_of']})")
+        gates = result["gates"]
+        failed = f" ({', '.join(gates['failed'])})" if gates["failed"] else ""
+        score = "–" if result["score"] is None else result["score"]
+        print(f"\n{ticker}  score {score} · gates {gates['passed']}/{gates['applicable']}{failed}  "
+              f"(as of {result['as_of']})")
         for c in result["checks"]:
-            print(f"  {marks[c['passed']]} {c['label']:<32} {c['value']:<44} [{c['threshold']}]")
+            score = f"{c['score']:>3}" if c["score"] is not None else "   "
+            print(f"  {mark(c)} {score} {c['label']:<32} {c['value']:<44} [{c['threshold']}]")
     return 0
 
 

@@ -69,11 +69,22 @@ export interface SearchResult {
   stored: boolean;
 }
 
+export interface ChecklistGates {
+  passed: number;
+  applicable: number;
+  /** Labels of the must-have checks that failed. */
+  failed: string[];
+}
+
 export interface ChecklistScore {
   passed: number;
   /** Checks that could be evaluated (e.g. volume is n/a for mutual funds). */
   applicable: number;
   all_pass: boolean;
+  /** Chart score 0-100: half the mean of the graded checks, half the mean of the 3 weakest (null if none). */
+  score: number | null;
+  /** Must-haves (price range, avg volume, weekly options, earnings): pass/fail only. */
+  gates: ChecklistGates;
 }
 
 export interface ChecklistItem {
@@ -83,6 +94,9 @@ export interface ChecklistItem {
   threshold: string;
   /** null = not applicable (too little history, no volume data). */
   passed: boolean | null;
+  /** Graded checks: 0-100, exactly 100 when passed. null for gates and n/a. */
+  score: number | null;
+  kind: "graded" | "gate";
 }
 
 /** Sector ETF for check #14: the user's override, else suggested from Yahoo's industry/sector. */

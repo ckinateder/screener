@@ -5,7 +5,16 @@ import pandas as pd
 import pytest
 
 from kaching.analysis.checklist import (
+    GATES,
     efficiency_ratio,
+    score_ema,
+    score_keltner,
+    score_recent,
+    score_sma,
+    score_support,
+    score_trend,
+    score_vertical,
+    score_volume,
     keltner_position,
     pct_above,
     regression_slope,
@@ -136,7 +145,7 @@ def test_result_shape():
         "weekly_trend", "daily_sync", "recent_90d", "ema21", "sma50", "keltner", "volume",
         "price_range", "support_layers", "not_vertical", "avg_volume", "weekly_options", "earnings", "sector_etf"]
     for c in result["checks"]:
-        assert set(c) == {"id", "label", "value", "threshold", "passed"}
+        assert set(c) == {"id", "label", "value", "threshold", "passed", "score", "kind"}
         assert c["value"] and c["threshold"]
 
 
@@ -248,9 +257,9 @@ def test_weekend_run_looks_at_the_coming_weeks():
     assert market_checks(info(expirations=exps), today=date(2026, 10, 4))["weekly_options"]["passed"] is False
 
 
-@pytest.mark.parametrize("earnings,passed", [("2026-10-31", False), ("2026-11-26", False), ("2026-11-30", True)])
-def test_earnings_window_is_8_weeks(earnings, passed):
-    # Oct 1 + 56 days = Nov 26 (still inside the window)
+@pytest.mark.parametrize("earnings,passed", [("2026-10-31", False), ("2026-11-12", False), ("2026-11-13", True)])
+def test_earnings_window_is_6_weeks(earnings, passed):
+    # Oct 1 + 42 days = Nov 12 (still inside the window); Nov 13 is the first day outside it
     check = market_checks(info(earnings=earnings))["earnings"]
     assert check["passed"] is passed, check["value"]
 
@@ -306,3 +315,91 @@ def test_relative_strength_vs_spy_is_shown():
     check = sector_check(sector(etf, spy_bars=flat_spy))
     assert f"{etf_ret:+.1%} vs SPY (3 mo)" in check["value"]
 
+
+
+# ------------------------------------------------------------------ graded scores
+
+@pytest.mark.parametrize("fn,args,expected", [
+    (score_ema, (80, 0.01), 1.0), (score_ema, (60, 0.01), 0.5), (score_ema, (40, 0.01), 0.0),
+    (score_sma, (1.0,), 1.0), (score_sma, (0.0,), 0.5), (score_sma, (-1.0,), 0.0),
+    (score_keltner, (0.8,), 1.0), (score_keltner, (0.0,), 0.5), (score_keltner, (-0.5,), 0.0),
+    (score_keltner, (1.4,), 0.5), (score_keltner, (1.7,), 0.0),
+    (score_volume, (1.0,), 1.0), (score_volume, (0.8,), 0.5), (score_volume, (0.6,), 0.0),
+    (score_support, (2,), 1.0), (score_support, (1,), 0.5), (score_support, (0,), 0.0),
+    (score_recent, (-0.05, -0.015), 0.5), (score_recent, (0.02, 0.01), 1.0), (score_recent, (-0.10, -0.03), 0.0),
+    (score_vertical, (0.40, False), 1.0), (score_vertical, (0.30, True), 0.0),
+])
+def test_score_curve_points(fn, args, expected):
+    assert fn(*args) == pytest.approx(expected)
+
+
+def test_ema_below_now_is_capped_under_half():
+    assert score_ema(100, -0.01) <= 0.49
+
+
+def test_vertical_run_is_always_a_fail():
+    assert score_vertical(0.16, True) < 0.5
+
+
+def test_trend_score_curve():
+    up = {"highs": (100, 110), "lows": (90, 95), "broken": False}
+    assert score_trend(up) == 1.0
+    near = {"highs": (100, 97.5), "lows": (90, 95), "broken": False}  # high 2.5% lower -> its half at 50
+    assert score_trend(near) == pytest.approx(0.75)
+    broken = {"highs": (100, 110), "lows": (90, 95), "broken": True}
+    assert score_trend(broken) <= 0.40
+    assert score_trend(None) == 0.0
+
+
+@pytest.mark.parametrize("bars", [
+    "up", "down", "recent_decline", "choppy"])
+def test_score_is_100_exactly_when_the_check_passes(bars):
+    base = uptrend_then_climb()
+    fixtures = {
+        "up": base,
+        "down": daily_bars(base["close"].to_numpy()[::-1]),
+        "recent_decline": daily_bars(np.concatenate([base["close"].to_numpy(),
+                                                     base["close"].iloc[-1] * np.exp(-0.003 * np.arange(1, 64))])),
+        "choppy": daily_bars(wavy_trend(700, drift=0.0003, amplitude=0.08)),
+    }
+    result = run_checklist(fixtures[bars], info(), today=TODAY, sector=sector(base))
+    for c in result["checks"]:
+        if c["kind"] == "graded" and c["passed"] is not None:
+            assert (c["score"] == 100) == (c["passed"] is True), (c["id"], c["score"], c["passed"])
+            assert 0 <= c["score"] <= 100
+
+
+def test_gates_have_no_score_and_are_listed():
+    result = run_checklist(uptrend_then_climb(), info(earnings="2026-10-20"), today=TODAY, sector=sector(uptrend_then_climb()))
+    by = by_id(result)
+    assert {c["id"] for c in result["checks"] if c["kind"] == "gate"} == GATES
+    assert all(by[g]["score"] is None for g in GATES)
+    assert result["gates"] == {"passed": 3, "applicable": 4, "failed": ["Earnings outside trade window"]}
+
+
+def test_chart_score_blends_mean_with_weakest_three():
+    result = run_checklist(daily_bars(uptrend_then_climb()["close"].to_numpy()[::-1]), info(), today=TODAY,
+                           sector=sector(uptrend_then_climb()))
+    graded = sorted(c["score"] for c in result["checks"] if c["kind"] == "graded" and c["score"] is not None)
+    mean, worst3 = sum(graded) / len(graded), sum(graded[:3]) / 3
+    assert result["score"] == round((mean + worst3) / 2)
+    assert result["score"] < 50  # a downtrend scores poorly
+
+
+def test_a_few_weak_checks_cost_real_points():
+    # 7 perfect checks + 3 weak ones: plain mean 85, blend (85 + 50) / 2 = 67.5 -> 68
+    from kaching.analysis.checklist import chart_score
+    assert chart_score([100] * 7 + [50] * 3) == 68
+    assert chart_score([100] * 10) == 100
+    assert chart_score([80, 60]) == 70  # fewer than 3 graded: worst = all of them
+    assert chart_score([]) is None
+
+
+def test_clean_uptrend_scores_100():
+    result = run_checklist(uptrend_then_climb(), info(), today=TODAY, sector=sector(uptrend_then_climb()))
+    assert result["score"] == 100 and result["gates"]["failed"] == []
+
+
+def test_no_graded_data_means_no_score():
+    result = run_checklist(daily_bars([]))
+    assert result["score"] is None and result["gates"] == {"passed": 0, "applicable": 0, "failed": []}

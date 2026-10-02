@@ -253,7 +253,7 @@ def _checklist_score(conn: sqlite3.Connection, ticker: str) -> dict | None:
     if daily.empty:
         return None
     result = _full_checklist(conn, ticker, daily)
-    return {k: result[k] for k in ("passed", "applicable", "all_pass")}
+    return {k: result[k] for k in ("passed", "applicable", "all_pass", "score", "gates")}
 
 
 # ---------------------------------------------------------------- routes

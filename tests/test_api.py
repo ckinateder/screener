@@ -173,7 +173,8 @@ def test_unknown_sector_etf_is_rejected_and_not_saved(client):
 def test_watchlist_rows_include_checklist_score(client):
     rows = client.put("/api/watchlist", json={"symbols": ["AAPL"]}).json()
     score = rows[0]["checklist"]
-    assert set(score) == {"passed", "applicable", "all_pass"}
+    assert set(score) == {"passed", "applicable", "all_pass", "score", "gates"}
+    assert set(score["gates"]) == {"passed", "applicable", "failed"}
     assert 0 <= score["passed"] <= score["applicable"] <= 14
 
 

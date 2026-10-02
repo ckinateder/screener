@@ -85,13 +85,15 @@ the watchlist for the active symbol, with an `X/14` badge per watchlist row; the
 | 10 | Not a vertical run | fails only if up > 15% in 20 days **and** in a near-straight line (efficiency ratio ≥ 0.4) |
 | 11 | Average volume | 50-day average ≥ 1M shares (n/a for funds) |
 | 12 | Weekly expirations | an option expiration in each of the next 4 weeks |
-| 13 | Earnings window | next earnings more than 8 weeks away (n/a if no date) |
+| 13 | Earnings window | next earnings more than 6 weeks away (n/a if no date) |
 | 14 | Sector ETF | the stock's sector ETF passes checks 1–3; relative strength vs SPY shown |
 
 #12–#13 use option expirations and the next earnings date from Yahoo, cached per ticker for a
 day (`kaching/market_info.py`); the chart's Refresh button refetches them. #14's ETF is suggested from
 Yahoo's industry, then sector (edit the map in `kaching/analysis/sector_etfs.json`), and can be
-overridden per ticker on checklist row #14. Thresholds are constants
+overridden per ticker on checklist row #14. Graded checks (1–7, 9, 10, 14) also score 0–100 (100 = passes; ✓ / ◐ near / ✗), blended into a chart
+score (half the average, half the average of the 3 weakest); checks 8, 11, 12 and 13 are pass/fail **gates**. The watchlist badge shows the chart score, outlined
+red when a gate fails. Thresholds are constants
 at the top of `checklist.py`. The checklist uses the strategy's own
 parameters, so the chart's indicator settings don't affect it.
 

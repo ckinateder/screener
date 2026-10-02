@@ -30,8 +30,18 @@ The 60-second chart check. Once charts are set up, evaluating a stock takes abou
 | 10 | Not a vertical run | 20-day gain, and straightness (net move ÷ total daily movement; 1 = straight line) | fails only if > 15% gain **and** straightness ≥ 0.4 |
 | 11 | Average volume     | 50-day average daily volume                                                       | ≥ 1M shares; n/a for funds                      |
 | 12 | Weekly expirations | option expiration dates in the next 4 weeks (Yahoo, refreshed daily)              | an expiration in each of the next 4 weeks       |
-| 13 | Earnings window    | next earnings date (Yahoo, refreshed daily)                                       | more than 8 weeks (56 days) away                |
+| 13 | Earnings window    | next earnings date (Yahoo, refreshed daily)                                       | more than 6 weeks (42 days) away                |
 | 14 | Sector ETF         | the sector ETF's checks 1–3 (ETF suggested from Yahoo industry/sector, or your override); RS vs SPY shown | the ETF passes all three trend checks |
+
+#### Scoring
+
+- **Graded checks** (1–7, 9, 10, 14) score **0–100**: exactly 100 when the check passes, falling off below
+  the threshold (50 about one threshold-width short, 0 two widths short). Marks: ✓ pass · ◐ near (50–99) · ✗ fail (< 50).
+- **Chart score** = half the average of all graded checks + half the average of the **3 weakest**, so a few
+  weak checks cost real points instead of being diluted.
+- **Gates** (8 price range, 11 average volume, 12 weekly expirations, 13 earnings) are must-haves: pass/fail only,
+  counted separately (e.g. "gates 3/4"). A failed gate outlines the watchlist score in red.
+- The score curves are constants at the top of `kaching/analysis/checklist.py`.
 
 ### Full Qualifying Checklist
 
