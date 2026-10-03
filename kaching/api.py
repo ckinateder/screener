@@ -224,7 +224,7 @@ def _watchlist_rows(conn: sqlite3.Connection) -> list[dict]:
 
 
 def sector_input(conn: sqlite3.Connection, ticker: str, info: dict | None) -> tuple[dict | None, dict | None]:
-    """(resolved ETF {etf, source, suggested}, checklist input {etf, source, bars, spy_bars}) for #14.
+    """(resolved ETF {etf, source, suggested}, checklist input {etf, source, bars, spy_bars}) for #10.
 
     ETF and SPY bars go through ensure_data like any symbol (fetched once, then throttled/cached).
     """
@@ -336,7 +336,7 @@ def checklist(ticker: str, conn: sqlite3.Connection = Depends(get_conn)):
 
 @app.put("/api/symbols/{ticker}/sector-etf")
 def set_sector_etf(ticker: str, body: SectorEtfUpdate, conn: sqlite3.Connection = Depends(get_conn)):
-    """Override the sector ETF used by Chart Checklist #14 (null resets to the suggestion)."""
+    """Override the sector ETF used by Chart Checklist #10 (null resets to the suggestion)."""
     ticker = ticker.upper()
     etf = body.etf.strip().upper() if body.etf and body.etf.strip() else None
     if etf:

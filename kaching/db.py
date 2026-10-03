@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS symbols (
     exchange     TEXT,
     last_fetched TEXT,
     full_history INTEGER NOT NULL DEFAULT 0, -- 1 once all available history has been fetched
-    sector_etf   TEXT                        -- user's override for Chart Checklist #14 (NULL = suggest)
+    sector_etf   TEXT                        -- user's override for Chart Checklist #10 (NULL = suggest)
 );
 CREATE TABLE IF NOT EXISTS watchlist (
     ticker   TEXT PRIMARY KEY,

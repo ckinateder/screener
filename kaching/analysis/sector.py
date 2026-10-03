@@ -1,4 +1,4 @@
-"""Which sector ETF to compare a stock against (Chart Checklist #14).
+"""Which sector ETF to compare a stock against (Chart Checklist #10).
 
 Suggestion order: Yahoo industry map, then sector map (both in sector_etfs.json, editable).
 A per-ticker override, set in the app, wins over both.

@@ -97,3 +97,28 @@ def test_rows_cached_before_classification_existed_are_refetched(conn, fetches):
     db.put_market_info(conn, "NVDA", {"expirations": [], "earnings": None, "fetched_at": NOW.isoformat()})
     refreshed = market_info.get_market_info(conn, "NVDA", now=NOW + timedelta(hours=1))
     assert fetches == ["NVDA"] and refreshed["industry"] == "Semiconductors"
+
+
+def test_empty_expirations_never_overwrite_a_known_list(conn, fetches, monkeypatch):
+    market_info.get_market_info(conn, "PFE", now=NOW)  # fake Yahoo: has expirations
+    monkeypatch.setattr(market_info, "fetch_market_info", lambda t: {
+        "expirations": [], "earnings": "2026-11-03", "sector": "Healthcare",
+        "industry": "Drug Manufacturers - General", "quote_type": "EQUITY"})  # transient glitch
+    refreshed = market_info.get_market_info(conn, "PFE", force=True, now=NOW + timedelta(hours=1))
+    assert refreshed["expirations"] == ["2026-10-02", "2026-10-09"]  # kept
+    assert refreshed["earnings"] == "2026-11-03"  # the rest is still refreshed
+
+
+def test_empty_expirations_are_rechecked_after_an_hour(conn, monkeypatch):
+    calls = []
+
+    def empty_then_full(t):
+        calls.append(t)
+        exps = [] if len(calls) == 1 else ["2026-10-09"]
+        return {"expirations": exps, "earnings": None, "sector": None, "industry": None, "quote_type": "EQUITY"}
+
+    monkeypatch.setattr(market_info, "fetch_market_info", empty_then_full)
+    assert market_info.get_market_info(conn, "PFE", now=NOW)["expirations"] == []
+    market_info.get_market_info(conn, "PFE", now=NOW + timedelta(minutes=30))
+    assert len(calls) == 1  # still cached within the hour
+    assert market_info.get_market_info(conn, "PFE", now=NOW + timedelta(minutes=61))["expirations"] == ["2026-10-09"]

@@ -9,7 +9,7 @@ from kaching.market_info import get_market_info
 
 
 def sector_input(conn, ticker, info):
-    """#14 input; lives in the API module (it reuses the API's fetch/throttle logic)."""
+    """#10 input; lives in the API module (it reuses the API's fetch/throttle logic)."""
     from kaching.api import sector_input as _sector_input  # lazy: keeps `fetch`/`list` free of FastAPI imports
     return _sector_input(conn, ticker, info)
 

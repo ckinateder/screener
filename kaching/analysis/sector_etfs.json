@@ -1,5 +1,5 @@
 {
-  "_comment": "Sector ETF suggestions for Chart Checklist #14. Keys are Yahoo Finance industry / sector names. Industry wins over sector; per-ticker overrides (set in the app) win over both.",
+  "_comment": "Sector ETF suggestions for Chart Checklist #10. Keys are Yahoo Finance industry / sector names. Industry wins over sector; per-ticker overrides (set in the app) win over both.",
   "industry": {
     "Semiconductors": "SMH",
     "Semiconductor Equipment & Materials": "SMH",

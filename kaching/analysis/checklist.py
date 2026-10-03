@@ -3,7 +3,7 @@
 Each check reports the measured value, its threshold, and passed: True / False / None, where None means
 not applicable (e.g. too little history, or no volume data for mutual funds) and isn't counted.
 "Graded" checks also get a 0-100 score: 100 exactly when the check passes, falling off below the threshold
-(curves below); the chart score blends their mean with the mean of the weakest three. "Gate" checks are must-haves, pass/fail only.
+(curves below); the chart score is their average. "Gate" checks are must-haves, pass/fail only.
 The checklist uses the strategy's own parameters below, independent of the chart's display settings.
 """
 from datetime import date, timedelta
@@ -24,26 +24,26 @@ SMA_LEN, ATR_LEN, SMA_MIN_ATR = 50, 14, 1.0               # 5. "room to spare" =
 KC_EMA, KC_ATR, KC_MULT = 20, 10, 2.0                     # 6.
 KC_WINDOW, KC_MIN, KC_MAX = 5, 0.5, 1.1
 VOL_WINDOW, VOL_MIN_RATIO = 50, 1.0                       # 7.
-PRICE_MIN, PRICE_MAX = 25.0, 300.0                        # 8. sweet spot for spread math
-SUPPORT_MIN_ZONES = 2                                     # 9. weekly zones, W Support defaults:
+PRICE_MIN, PRICE_MAX = 25.0, 300.0                        # 11. (gate) sweet spot for spread math
+SUPPORT_MIN_ZONES = 2                                     # 8. weekly zones, W Support defaults:
 SUPPORT_PIVOT, SUPPORT_TOL, SUPPORT_YEARS, SUPPORT_MIN_TOUCHES = 2, 2.0, 3, 1
 ZONE_CAP = 10  # zones counted at most (shown as "10+")
-# 10. Vertical = a big move (absolute %, the rule is about spread math in dollars) made in a near-straight
+# 9. Vertical = a big move (absolute %, the rule is about spread math in dollars) made in a near-straight
 # line. Size alone flags volatile stocks in ordinary choppy months (SNDK: median 20d gain ~20%).
 VERTICAL_BARS, VERTICAL_MIN_GAIN, VERTICAL_MIN_ER = 20, 0.15, 0.4
-AVG_VOL_WINDOW, AVG_VOL_MIN = 50, 1_000_000               # 11.
-WEEKLY_OPTION_WEEKS = 4                                   # 12. an expiration in each of the next 4 weeks
-EARNINGS_WINDOW_DAYS = 42                                 # 13. earnings must be > 6 weeks away
-SECTOR_TREND_CHECKS = ("weekly_trend", "daily_sync", "recent_90d")  # 14. the ETF must pass these
-RS_BARS = 63                                                       # 14. relative strength vs SPY, ~3 months
+AVG_VOL_WINDOW, AVG_VOL_MIN = 50, 1_000_000               # 12. (gate)
+WEEKLY_OPTION_WEEKS = 4                                   # 13. (gate) an expiration in each of the next 4 weeks
+EARNINGS_WINDOW_DAYS = 42                                 # 14. (gate) earnings must be > 6 weeks away
+SECTOR_TREND_CHECKS = ("weekly_trend", "daily_sync", "recent_90d")  # 10. the ETF must pass these
+RS_BARS = 63                                                       # 10. relative strength vs SPY, ~3 months
 TRADING_DAYS_PER_MONTH = 21
 
-# Must-have items: pass/fail only, reported separately from the chart score.
+# Must-have items: pass/fail only, reported separately from the chart score and listed last (11-14).
 GATES = {"price_range", "avg_volume", "weekly_options", "earnings"}
 
 # Score curves (graded checks): linear from 0 at the first value to full marks at the second.
 # "Moderate" calibration: score 50 one threshold-width below the pass line, 0 two widths below.
-TREND_DROP = (-0.05, 0.0)       # 1/2/14: a lower high (or low) scores its half 50 at -2.5%, 0 at -5%
+TREND_DROP = (-0.05, 0.0)       # 1/2/10: a lower high (or low) scores its half 50 at -2.5%, 0 at -5%
 TREND_BROKEN_CAP = 0.40         #        below the last swing low: always a fail
 RECENT_RETURN = (-0.10, 0.0)    # 3: 63-day return (half the score)
 RECENT_SLOPE = (-0.03, 0.0)     # 3: regression slope, per month (other half)
@@ -52,11 +52,7 @@ SMA_ATRS = (-1.0, SMA_MIN_ATR)  # 5: ATRs above the 50 MA
 KC_BELOW = (-0.5, KC_MIN)       # 6: position below the band
 KC_ABOVE = (1.7, KC_MAX)        # 6: position above the band (descending)
 VOL_RATIO = (0.6, VOL_MIN_RATIO)  # 7: up/down volume ratio
-VERTICAL_FADE = (VERTICAL_MIN_GAIN, 0.30)  # 10: vertical runs score 0.40 -> 0 as the gain grows
-
-# Chart score: half the mean of all graded checks, half the mean of the weakest few, so a handful of weak
-# checks cost real points (a plain mean squashed most tickers into 84-96).
-SCORE_WORST_N = 3
+VERTICAL_FADE = (VERTICAL_MIN_GAIN, 0.30)  # 9: vertical runs score 0.40 -> 0 as the gain grows
 
 
 # ------------------------------------------------------------------ building blocks
@@ -155,11 +151,8 @@ def score_support(zones: int) -> float:
 
 
 def chart_score(scores: list[int]) -> int | None:
-    """Blend of the mean of all graded scores and the mean of the SCORE_WORST_N weakest."""
-    if not scores:
-        return None
-    worst = sorted(scores)[:SCORE_WORST_N]
-    return round((sum(scores) / len(scores) + sum(worst) / len(worst)) / 2)
+    """The chart score: the average of the graded checks' scores."""
+    return round(sum(scores) / len(scores)) if scores else None
 
 
 def score_vertical(gain: float, vertical: bool) -> float:
@@ -227,7 +220,7 @@ def _earnings_check(earnings: str | None, today: date) -> dict:
 
 
 def _sector_check(sector: dict | None) -> dict:
-    """#14: the sector ETF passes the trend checks (#1-#3); relative strength vs SPY shown for info."""
+    """#10: the sector ETF passes the trend checks (#1-#3); relative strength vs SPY shown for info."""
     label, rule = "Sector ETF trending same direction", "sector ETF passes checks 1–3 (trend)"
     if sector is None:
         return _graded("sector_etf", label, "no sector ETF", rule, None, None)
@@ -248,8 +241,8 @@ def run_checklist(daily: pd.DataFrame, info: dict | None = None, today: date | N
                   sector: dict | None = None) -> dict:
     """Run all 14 checks on daily bars (oldest first). See the module docstring for the result shape.
 
-    `info` is market data from kaching.market_info ({expirations, earnings}); without it, #12/#13 are n/a.
-    `sector` is {etf, source, bars, spy_bars} for the stock's sector ETF; without it, #14 is n/a.
+    `info` is market data from kaching.market_info ({expirations, earnings}); without it, #13/#14 are n/a.
+    `sector` is {etf, source, bars, spy_bars} for the stock's sector ETF; without it, #10 is n/a.
     """
     today = today or date.today()
     if len(daily) > 0:
@@ -258,7 +251,7 @@ def run_checklist(daily: pd.DataFrame, info: dict | None = None, today: date | N
     checks = []
 
     # 1. Weekly trend direction
-    weekly_all = to_weekly(daily) if n else daily  # #9 searches all EVAL_YEARS; #1 only the last year
+    weekly_all = to_weekly(daily) if n else daily  # #8 searches all EVAL_YEARS; #1 only the last year
     weekly = weekly_all
     if len(weekly):
         weekly = weekly[weekly.index >= weekly.index[-1] - pd.DateOffset(years=W_LOOKBACK_YEARS)]
@@ -339,14 +332,14 @@ def run_checklist(daily: pd.DataFrame, info: dict | None = None, today: date | N
                           None if ratio is None else ratio >= VOL_MIN_RATIO,
                           None if ratio is None else score_volume(min(ratio, 10.0))))
 
-    # 8. Stock price in range
+    # 11. Stock price in range (gate)
     last = float(close.iloc[-1]) if n else None
     checks.append(_check("price_range", "Stock price in range",
                          f"${last:,.2f}" if last is not None else "no data",
                          f"${PRICE_MIN:g}–${PRICE_MAX:g}",
                          PRICE_MIN <= last <= PRICE_MAX if last is not None else None))
 
-    # 9. Support layers (the "steady uptrend" half of this rule is check 1)
+    # 8. Support layers (the "steady uptrend" half of this rule is check 1)
     if w_enough:
         zones = support_zones(weekly_all, SUPPORT_PIVOT, SUPPORT_TOL, SUPPORT_YEARS, ZONE_CAP, SUPPORT_MIN_TOUCHES)
         levels = " · ".join(f"{(z['low'] + z['high']) / 2:.2f}" for z in zones[:3])  # nearest three
@@ -359,7 +352,7 @@ def run_checklist(daily: pd.DataFrame, info: dict | None = None, today: date | N
         checks.append(_check("support_layers", "Support layers below price", "not enough history",
                              f"≥ {SUPPORT_MIN_ZONES} weekly support zones below price", None))
 
-    # 10. Not on a vertical straight-up run
+    # 9. Not on a vertical straight-up run
     vertical_rule = (f"not (> {VERTICAL_MIN_GAIN:.0%} in {VERTICAL_BARS}d and straightness ≥ "
                      f"{VERTICAL_MIN_ER:g}); straightness 1 = straight line")
     if n > VERTICAL_BARS:
@@ -372,7 +365,7 @@ def run_checklist(daily: pd.DataFrame, info: dict | None = None, today: date | N
     else:
         checks.append(_check("not_vertical", "Not on a vertical run", "not enough history", vertical_rule, None))
 
-    # 11. Average daily volume (n/a without volume data, e.g. mutual funds)
+    # 12. Average daily volume (gate; n/a without volume data, e.g. mutual funds)
     avg_vol = float(daily["volume"].iloc[-AVG_VOL_WINDOW:].mean()) if n >= AVG_VOL_WINDOW else None
     if avg_vol is None:
         value = "not enough history"
@@ -384,7 +377,7 @@ def run_checklist(daily: pd.DataFrame, info: dict | None = None, today: date | N
                          f"≥ {AVG_VOL_MIN / 1e6:g}M over {AVG_VOL_WINDOW}d",
                          None if avg_vol is None else avg_vol >= AVG_VOL_MIN))
 
-    # 12-13. Weekly expirations, earnings (live market data, passed in by the caller)
+    # 13-14. Weekly expirations, earnings (gates; live market data, passed in by the caller)
     if info is None:
         checks.append(_check("weekly_options", "Weekly expirations available", "unavailable",
                              f"an expiration in each of the next {WEEKLY_OPTION_WEEKS} weeks", None))
@@ -394,8 +387,11 @@ def run_checklist(daily: pd.DataFrame, info: dict | None = None, today: date | N
         checks.append(_weekly_options_check(info["expirations"], today))
         checks.append(_earnings_check(info["earnings"], today))
 
-    # 14. Sector ETF trending the same direction
+    # 10. Sector ETF trending the same direction
     checks.append(_sector_check(sector))
+
+    # Display order: graded checks first (1-10), gates last (11-14).
+    checks = [c for c in checks if c["kind"] == "graded"] + [c for c in checks if c["kind"] == "gate"]
 
     applicable = [c for c in checks if c["passed"] is not None]
     passed = sum(c["passed"] for c in applicable)

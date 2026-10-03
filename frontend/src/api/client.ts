@@ -81,7 +81,7 @@ export interface ChecklistScore {
   /** Checks that could be evaluated (e.g. volume is n/a for mutual funds). */
   applicable: number;
   all_pass: boolean;
-  /** Chart score 0-100: half the mean of the graded checks, half the mean of the 3 weakest (null if none). */
+  /** Chart score 0-100: average of the graded checks (null when none could be evaluated). */
   score: number | null;
   /** Must-haves (price range, avg volume, weekly options, earnings): pass/fail only. */
   gates: ChecklistGates;
@@ -99,7 +99,7 @@ export interface ChecklistItem {
   kind: "graded" | "gate";
 }
 
-/** Sector ETF for check #14: the user's override, else suggested from Yahoo's industry/sector. */
+/** Sector ETF for check #10: the user's override, else suggested from Yahoo's industry/sector. */
 export interface SectorEtf {
   etf: string;
   source: "override" | "industry" | "sector";
@@ -183,7 +183,7 @@ export const api = {
     request<WatchlistRow[]>(`/api/watchlist/refresh${force ? "?force=true" : ""}`, { method: "POST" }),
   setWatchlist: (symbols: string[]) => request<WatchlistRow[]>("/api/watchlist", json("PUT", { symbols })),
   checklist: (symbol: string) => request<Checklist>(`/api/checklist/${encodeURIComponent(symbol)}`),
-  /** Override the sector ETF for check #14; null resets to the suggestion. */
+  /** Override the sector ETF for check #10; null resets to the suggestion. */
   setSectorEtf: (symbol: string, etf: string | null) =>
     request<{ symbol: string; sector_etf: string | null }>(
       `/api/symbols/${encodeURIComponent(symbol)}/sector-etf`,

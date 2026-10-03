@@ -141,9 +141,10 @@ def test_short_history_reports_not_applicable_instead_of_crashing():
 def test_result_shape():
     result = run_checklist(uptrend_then_climb())
     assert result["as_of"] == uptrend_then_climb().index[-1].strftime("%Y-%m-%d")
-    assert [c["id"] for c in result["checks"]] == [
+    assert [c["id"] for c in result["checks"]] == [  # graded 1-10, then gates 11-14
         "weekly_trend", "daily_sync", "recent_90d", "ema21", "sma50", "keltner", "volume",
-        "price_range", "support_layers", "not_vertical", "avg_volume", "weekly_options", "earnings", "sector_etf"]
+        "support_layers", "not_vertical", "sector_etf",
+        "price_range", "avg_volume", "weekly_options", "earnings"]
     for c in result["checks"]:
         assert set(c) == {"id", "label", "value", "threshold", "passed", "score", "kind"}
         assert c["value"] and c["threshold"]
@@ -159,7 +160,7 @@ def test_single_bar_only_judges_price():
     assert [c["id"] for c in result["checks"] if c["passed"] is not None] == ["price_range"]
 
 
-# ------------------------------------------------------------------ qualifying checks (#8-#11)
+# ------------------------------------------------------------------ qualifying checks (#8, #9, #11, #12)
 
 @pytest.mark.parametrize("scale,passed", [(1.0, True), (0.05, False), (2.0, False)])
 def test_price_range(scale, passed):
@@ -216,7 +217,7 @@ def test_avg_volume_threshold():
     assert by_id(run_checklist(bars))["avg_volume"]["passed"] is True
 
 
-# ------------------------------------------------------------------ market info checks (#12-#13)
+# ------------------------------------------------------------------ market info checks (#13-#14)
 
 TODAY = date(2026, 10, 1)  # a Thursday
 FRIDAYS = ["2026-10-02", "2026-10-09", "2026-10-16", "2026-10-23", "2026-10-30"]
@@ -278,7 +279,7 @@ def test_no_market_info_makes_both_checks_not_applicable():
     assert checks["weekly_options"]["passed"] is None and checks["earnings"]["passed"] is None
 
 
-# ------------------------------------------------------------------ sector ETF (#14)
+# ------------------------------------------------------------------ sector ETF (#10)
 
 def sector(etf_bars, spy_bars=None, etf="SMH", source="industry"):
     return {"etf": etf, "source": source, "bars": etf_bars,
@@ -377,21 +378,18 @@ def test_gates_have_no_score_and_are_listed():
     assert result["gates"] == {"passed": 3, "applicable": 4, "failed": ["Earnings outside trade window"]}
 
 
-def test_chart_score_blends_mean_with_weakest_three():
+def test_chart_score_is_the_average_of_graded_checks():
     result = run_checklist(daily_bars(uptrend_then_climb()["close"].to_numpy()[::-1]), info(), today=TODAY,
                            sector=sector(uptrend_then_climb()))
-    graded = sorted(c["score"] for c in result["checks"] if c["kind"] == "graded" and c["score"] is not None)
-    mean, worst3 = sum(graded) / len(graded), sum(graded[:3]) / 3
-    assert result["score"] == round((mean + worst3) / 2)
+    graded = [c["score"] for c in result["checks"] if c["kind"] == "graded" and c["score"] is not None]
+    assert result["score"] == round(sum(graded) / len(graded))
     assert result["score"] < 50  # a downtrend scores poorly
 
 
-def test_a_few_weak_checks_cost_real_points():
-    # 7 perfect checks + 3 weak ones: plain mean 85, blend (85 + 50) / 2 = 67.5 -> 68
+def test_chart_score_formula():
     from kaching.analysis.checklist import chart_score
-    assert chart_score([100] * 7 + [50] * 3) == 68
-    assert chart_score([100] * 10) == 100
-    assert chart_score([80, 60]) == 70  # fewer than 3 graded: worst = all of them
+    assert chart_score([100] * 7 + [50] * 3) == 85
+    assert chart_score([80, 60]) == 70
     assert chart_score([]) is None
 
 

@@ -80,19 +80,19 @@ the watchlist for the active symbol, with an `X/14` badge per watchlist row; the
 | 5 | vs 50 SMA | above by ≥ 1 ATR(14) |
 | 6 | Keltner position | 5-day average of (close − mid) / (upper − mid) between 0.5 and 1.1 |
 | 7 | Volume | up-day ÷ down-day volume over 50 days ≥ 1.0 (n/a without volume data, e.g. funds) |
-| 8 | Price in range | last close $25–$300 |
-| 9 | Support layers | ≥ 2 weekly support zones below price |
-| 10 | Not a vertical run | fails only if up > 15% in 20 days **and** in a near-straight line (efficiency ratio ≥ 0.4) |
-| 11 | Average volume | 50-day average ≥ 1M shares (n/a for funds) |
-| 12 | Weekly expirations | an option expiration in each of the next 4 weeks |
-| 13 | Earnings window | next earnings more than 6 weeks away (n/a if no date) |
-| 14 | Sector ETF | the stock's sector ETF passes checks 1–3; relative strength vs SPY shown |
+| 8 | Support layers | ≥ 2 weekly support zones below price |
+| 9 | Not a vertical run | fails only if up > 15% in 20 days **and** in a near-straight line (efficiency ratio ≥ 0.4) |
+| 10 | Sector ETF | the stock's sector ETF passes checks 1–3; relative strength vs SPY shown |
+| 11 | Price in range | last close $25–$300 |
+| 12 | Average volume | 50-day average ≥ 1M shares (n/a for funds) |
+| 13 | Weekly expirations | an option expiration in each of the next 4 weeks |
+| 14 | Earnings window | next earnings more than 6 weeks away (n/a if no date) |
 
-#12–#13 use option expirations and the next earnings date from Yahoo, cached per ticker for a
-day (`kaching/market_info.py`); the chart's Refresh button refetches them. #14's ETF is suggested from
+#13–#14 use option expirations and the next earnings date from Yahoo, cached per ticker for a
+day (`kaching/market_info.py`); the chart's Refresh button refetches them. #10's ETF is suggested from
 Yahoo's industry, then sector (edit the map in `kaching/analysis/sector_etfs.json`), and can be
-overridden per ticker on checklist row #14. Graded checks (1–7, 9, 10, 14) also score 0–100 (100 = passes; ✓ / ◐ near / ✗), blended into a chart
-score (half the average, half the average of the 3 weakest); checks 8, 11, 12 and 13 are pass/fail **gates**. The watchlist badge shows the chart score, outlined
+overridden per ticker on checklist row #10. Graded checks (1–10) also score 0–100 (100 = passes; ✓ / ◐ near / ✗), averaged into a chart
+score; checks 11–14 are pass/fail **gates**, listed last. The watchlist badge shows the chart score, outlined
 red when a gate fails. Thresholds are constants
 at the top of `checklist.py`. The checklist uses the strategy's own
 parameters, so the chart's indicator settings don't affect it.

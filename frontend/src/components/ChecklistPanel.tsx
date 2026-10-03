@@ -26,7 +26,7 @@ function scoreClass(score: number): string {
 export function ChecklistBadge({ score, className = "" }: { score: ChecklistScore; className?: string }) {
   const failed = score.gates.failed;
   const title = [
-    `Chart score ${score.score ?? "–"} (half the average of graded checks, half the 3 weakest)`,
+    `Chart score ${score.score ?? "–"} (average of graded checks)`,
     `Gates ${score.gates.passed}/${score.gates.applicable}` + (failed.length ? ` — failed: ${failed.join(", ")}` : ""),
   ].join("\n");
   return (
@@ -176,7 +176,7 @@ export function ChecklistPanel() {
   );
 }
 
-/** Row #14: change the sector ETF used for this symbol, or go back to the suggestion. */
+/** Row #10: change the sector ETF used for this symbol, or go back to the suggestion. */
 function SectorEtfEditor({ symbol, current }: { symbol: string; current: SectorEtf }) {
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(current.etf);
